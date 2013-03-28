@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries", "KellySelden.Libraries\KellySelden.Libraries.csproj", "{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Tests", "KellySelden.Libraries.Tests\KellySelden.Libraries.Tests.csproj", "{699E468E-3877-4BDF-BD7F-2FD61937F92F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{699E468E-3877-4BDF-BD7F-2FD61937F92F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{699E468E-3877-4BDF-BD7F-2FD61937F92F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{699E468E-3877-4BDF-BD7F-2FD61937F92F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{699E468E-3877-4BDF-BD7F-2FD61937F92F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

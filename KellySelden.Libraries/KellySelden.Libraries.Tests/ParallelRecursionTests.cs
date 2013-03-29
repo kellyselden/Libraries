@@ -54,7 +54,7 @@ namespace KellySelden.Libraries.Tests
 		[TestInitialize]
 		public void TestInitialize()
 		{
-			Action<Node> buildTree = node => BuildTree(node, 3, 3);
+			Action<Node> buildTree = node => BuildTree(node, 4, 4);
 
 			_node1 = new Node("", 0);
 			Reseed();
@@ -91,10 +91,10 @@ namespace KellySelden.Libraries.Tests
 			{
 				foreach (Node child in parent.Children)
 				{
-					recurse(child, c =>
+					recurse(child, () =>
 					{
 						Thread.Sleep(10);
-						parent.Value += c.Value;
+						parent.Value += child.Value;
 						//node2.Value += c.Value;
 						//c.Print();
 					});
@@ -107,45 +107,83 @@ namespace KellySelden.Libraries.Tests
 			Assert.AreEqual(_node1.Value, _node2.Value);
 		}
 
-		//[TestMethod]
-		//public void TestMethod2()
-		//{
-		//	Func<Node, int> recursion = null;
-		//	recursion = parent =>
-		//	{
-		//		int value = parent.Value;
-		//		foreach (Node child in parent.Children)
-		//		{
-		//			value += recursion(child);
-		//			Thread.Sleep(10);
-		//		}
-		//		return value;
-		//	};
-		//	var stopwatch = Stopwatch.StartNew();
-		//	_node1.Value = recursion(_node1);
-		//	stopwatch.Stop();
-		//	Debug.WriteLine(stopwatch.ElapsedMilliseconds);
+		[TestMethod]
+		public void TestMethod2()
+		{
+			Func<Node, int> recursion = null;
+			recursion = parent =>
+			{
+				int value = parent.Value;
+				foreach (Node child in parent.Children)
+				{
+					value += recursion(child);
+					Thread.Sleep(10);
+				}
+				return value;
+			};
+			var stopwatch = Stopwatch.StartNew();
+			_node1.Value = recursion(_node1);
+			stopwatch.Stop();
+			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 
-		//	stopwatch.Restart();
-		//	_node2.Value = new ParallelRecursion(4).Start2(_node2, (parent, recurse) =>
-		//	{
-		//		int value = parent.Value;
-		//		foreach (Node child in parent.Children)
-		//		{
-		//			value += recurse(child, c =>
-		//			{
-		//				Thread.Sleep(10);
-		//				parent.Value += c.Value;
-		//				//node2.Value += c.Value;
-		//				//c.Print();
-		//			});
-		//		}
-		//		return value;
-		//	});
-		//	stopwatch.Stop();
-		//	Debug.WriteLine(stopwatch.ElapsedMilliseconds);
+			stopwatch.Restart();
+			_node2.Value = new ParallelRecursion(4).Start<Node, int>(_node2, (parent, recurse) =>
+			{
+				int value = parent.Value;
+				foreach (Node child in parent.Children)
+				{
+					recurse(child, v =>
+					{
+						value += v;
+						Thread.Sleep(10);
+					});
+				}
+				return () => value;
+			});
+			stopwatch.Stop();
+			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 
-		//	Assert.AreEqual(_node1.Value, _node2.Value);
-		//}
+			Assert.AreEqual(_node1.Value, _node2.Value);
+		}
+
+		[TestMethod]
+		public void TestMethod3()
+		{
+			Func<Node, int> recursion = null;
+			recursion = parent =>
+			{
+				int value = parent.Value;
+				foreach (Node child in parent.Children)
+				{
+					value += recursion(child);
+					Thread.Sleep(10);
+				}
+				return value;
+			};
+			var stopwatch = Stopwatch.StartNew();
+			_node1.Value = recursion(_node1);
+			stopwatch.Stop();
+			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
+
+			stopwatch.Restart();
+			Func<Node, int> func = new ParallelRecursion(4).Start<Node, int>((parent, recurse) =>
+			{
+				int value = parent.Value;
+				foreach (Node child in parent.Children)
+				{
+					recurse(child, v =>
+					{
+						value += v;
+						Thread.Sleep(10);
+					});
+				}
+				return () => value;
+			});
+			_node2.Value = func(_node2);
+			stopwatch.Stop();
+			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
+
+			Assert.AreEqual(_node1.Value, _node2.Value);
+		}
 	}
 }

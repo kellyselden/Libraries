@@ -8,6 +8,7 @@ namespace KellySelden.Libraries
 	public class ParallelRecursion
 	{
 		readonly int _numberOfTasks;
+		ConcurrentDictionary<int, ConcurrentBag<Task>> taskWaitList = new ConcurrentDictionary<int, ConcurrentBag<Task>>();
 
 		public ParallelRecursion(int numberOfThreads)
 		{
@@ -18,118 +19,114 @@ namespace KellySelden.Libraries
 			_numberOfTasks = numberOfThreads - 1;
 		}
 
-		public void Start<TInput>(TInput firstElement, Action<TInput, Action<TInput, Action<TInput>>> bodyFromCaller)
+		Task[] RemoveAndReturnTasks()
 		{
-			var taskWaitList = new ConcurrentDictionary<int, ConcurrentBag<Task>>();
-			Action<TInput, Action<TInput>> recursiveWrapper = null;
-			Func<Task[]> removeAndReturnTasks = () =>
+			Task[] tasks;
+			int threadId = Thread.CurrentThread.ManagedThreadId;
+			lock (taskWaitList)
 			{
-				Task[] tasks;
-				int threadId = Thread.CurrentThread.ManagedThreadId;
-				lock (taskWaitList)
+				if (taskWaitList.ContainsKey(threadId))
 				{
-					if (taskWaitList.ContainsKey(threadId))
-					{
-						ConcurrentBag<Task> tasks2;
-						taskWaitList.TryRemove(threadId, out tasks2);
-						tasks = tasks2.ToArray();
-					}
-					else
-					{
-						tasks = new Task[0];
-					}
+					ConcurrentBag<Task> taskList;
+					taskWaitList.TryRemove(threadId, out taskList);
+					tasks = taskList.ToArray();
 				}
-				return tasks;
-			};
-			recursiveWrapper = (nextElement, callback) =>
-			{
-				Action action = () =>
+				else
 				{
-					bodyFromCaller(nextElement, recursiveWrapper);
-
-					Task.WaitAll(removeAndReturnTasks());
-
-					callback(nextElement);
-				};
-				bool runSynchronously = false;
-				lock (taskWaitList)
-				{
-					if (taskWaitList.Count < _numberOfTasks)
-					{
-						int threadId = Thread.CurrentThread.ManagedThreadId;
-						if (!taskWaitList.ContainsKey(threadId))
-							taskWaitList.TryAdd(threadId, new ConcurrentBag<Task>());
-
-						taskWaitList[threadId].Add(Task.Factory.StartNew(action));
-					}
-					else
-					{
-						runSynchronously = true;
-					}
+					tasks = new Task[0];
 				}
-				if (runSynchronously)
-					action();
-			};
-			bodyFromCaller(firstElement, recursiveWrapper);
-
-			Task.WaitAll(removeAndReturnTasks());
+			}
+			return tasks;
 		}
 
-		//public TOutput Start2<TInput, TOutput>(TInput firstElement, Action<TInput, Action<TInput, Action<TInput>>> bodyFromCaller)
+		void AddTask(Action action)
+		{
+			int threadId = Thread.CurrentThread.ManagedThreadId;
+			if (!taskWaitList.ContainsKey(threadId))
+				taskWaitList.TryAdd(threadId, new ConcurrentBag<Task>());
+
+			taskWaitList[threadId].Add(Task.Factory.StartNew(action));
+		}
+
+		public void Start<TInput>(TInput firstElement, Action<TInput, Action<TInput, Action>> bodyFromCaller)
+		{
+			Start(bodyFromCaller)(firstElement);
+		}
+
+		//public Action<TInput> Start<TInput>(Action<TInput, Action<TInput, Action>> bodyFromCaller)
 		//{
-		//	var taskWaitList = new ConcurrentDictionary<int, ConcurrentBag<Task>>();
-		//	Action<TInput, Action<TInput>> recursiveWrapper = null;
-		//	Func<Task[]> removeAndReturnTasks = () =>
+		//	Action<TInput, Action> recursiveWrapper = null;
+
+		//	Action<TInput> recurseThenWait = element =>
 		//	{
-		//		Task[] tasks;
-		//		int threadId = Thread.CurrentThread.ManagedThreadId;
-		//		lock (taskWaitList)
-		//		{
-		//			if (taskWaitList.ContainsKey(threadId))
-		//			{
-		//				ConcurrentBag<Task> tasks2;
-		//				taskWaitList.TryRemove(threadId, out tasks2);
-		//				tasks = tasks2.ToArray();
-		//			}
-		//			else
-		//			{
-		//				tasks = new Task[0];
-		//			}
-		//		}
-		//		return tasks;
+		//		bodyFromCaller(element, recursiveWrapper);
+
+		//		Task.WaitAll(RemoveAndReturnTasks());
 		//	};
+
 		//	recursiveWrapper = (nextElement, callback) =>
 		//	{
-		//		Action action = () =>
+		//		Action recurse = () =>
 		//		{
-		//			bodyFromCaller(nextElement, recursiveWrapper);
-
-		//			Task.WaitAll(removeAndReturnTasks());
-
-		//			callback(nextElement);
+		//			recurseThenWait(nextElement);
+		//			callback();
 		//		};
+
 		//		bool runSynchronously = false;
 		//		lock (taskWaitList)
 		//		{
 		//			if (taskWaitList.Count < _numberOfTasks)
-		//			{
-		//				int threadId = Thread.CurrentThread.ManagedThreadId;
-		//				if (!taskWaitList.ContainsKey(threadId))
-		//					taskWaitList.TryAdd(threadId, new ConcurrentBag<Task>());
-
-		//				taskWaitList[threadId].Add(Task.Factory.StartNew(action));
-		//			}
-		//			else
-		//			{
-		//				runSynchronously = true;
-		//			}
+		//				AddTask(recurse);
+		//			else runSynchronously = true;
 		//		}
-		//		if (runSynchronously)
-		//			action();
+		//		if (runSynchronously) recurse();
 		//	};
-		//	bodyFromCaller(firstElement, recursiveWrapper);
 
-		//	Task.WaitAll(removeAndReturnTasks());
+		//	return recurseThenWait;
 		//}
+
+		public Action<TInput> Start<TInput>(Action<TInput, Action<TInput, Action>> bodyFromCaller)
+		{
+			return z => Start<TInput, object>((i, j) =>
+			{
+				bodyFromCaller(i, (x, y) => j(x, a => y()));
+				return null;
+			})(z);
+		}
+
+		public TOutput Start<TInput, TOutput>(TInput firstElement, Func<TInput, Action<TInput, Action<TOutput>>, Func<TOutput>> bodyFromCaller)
+		{
+			return Start(bodyFromCaller)(firstElement);
+		}
+
+		public Func<TInput, TOutput> Start<TInput, TOutput>(Func<TInput, Action<TInput, Action<TOutput>>, Func<TOutput>> bodyFromCaller)
+		{
+			Action<TInput, Action<TOutput>> recursiveWrapper = null;
+
+			Func<TInput, TOutput> recurseThenWaitThenReturnValue = element =>
+			{
+				Func<TOutput> returnValueGetter = bodyFromCaller(element, recursiveWrapper);
+
+				Task.WaitAll(RemoveAndReturnTasks());
+
+				return returnValueGetter();
+			};
+
+			recursiveWrapper = (nextElement, callback) =>
+			{
+				Action recurse = () => callback(recurseThenWaitThenReturnValue(nextElement));
+
+				bool runSynchronously = false;
+				lock (taskWaitList)
+				{
+					if (taskWaitList.Count < _numberOfTasks)
+						AddTask(recurse);
+					else runSynchronously = true;
+				}
+				if (runSynchronously) recurse();
+			};
+
+			return recurseThenWaitThenReturnValue;
+		}
 	}
 }

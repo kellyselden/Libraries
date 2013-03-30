@@ -84,6 +84,11 @@ namespace KellySelden.Libraries
 		//	return StartCSharp4<TInput>((i, j) => bodyFromCaller(i, (x, y) => j(x, a => y())));
 		//}
 
+		public void StartCSharp4<TInput>(TInput firstElement, Action<TInput, Action<TInput, Action<TInput>>> bodyFromCaller)
+		{
+			StartCSharp4(bodyFromCaller)(firstElement);
+		}
+
 		public Action<TInput> StartCSharp4<TInput>(Action<TInput, Action<TInput, Action<TInput>>> bodyFromCaller)
 		{
 			Action<TInput, Action<TInput>> recursiveWrapper = null;
@@ -141,6 +146,11 @@ namespace KellySelden.Libraries
 		//{
 		//	return StartCSharp4<TInput, TOutput>((i, j) => bodyFromCaller(i, (x, y) => j(x, (a, b) => y(b))));
 		//}
+
+		public TOutput StartCSharp4<TInput, TOutput>(TInput firstElement, Func<TInput, Action<TInput, Action<TInput, TOutput>>, Func<TOutput>> bodyFromCaller)
+		{
+			return StartCSharp4(bodyFromCaller)(firstElement);
+		}
 
 		public Func<TInput, TOutput> StartCSharp4<TInput, TOutput>(Func<TInput, Action<TInput, Action<TInput, TOutput>>, Func<TOutput>> bodyFromCaller)
 		{

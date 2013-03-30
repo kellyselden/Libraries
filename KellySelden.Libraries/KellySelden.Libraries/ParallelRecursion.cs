@@ -53,46 +53,47 @@ namespace KellySelden.Libraries
 			Start(bodyFromCaller)(firstElement);
 		}
 
-		//public Action<TInput> Start<TInput>(Action<TInput, Action<TInput, Action>> bodyFromCaller)
-		//{
-		//	Action<TInput, Action> recursiveWrapper = null;
-
-		//	Action<TInput> recurseThenWait = element =>
-		//	{
-		//		bodyFromCaller(element, recursiveWrapper);
-
-		//		Task.WaitAll(RemoveAndReturnTasks());
-		//	};
-
-		//	recursiveWrapper = (nextElement, callback) =>
-		//	{
-		//		Action recurse = () =>
-		//		{
-		//			recurseThenWait(nextElement);
-		//			callback();
-		//		};
-
-		//		bool runSynchronously = false;
-		//		lock (taskWaitList)
-		//		{
-		//			if (taskWaitList.Count < _numberOfTasks)
-		//				AddTask(recurse);
-		//			else runSynchronously = true;
-		//		}
-		//		if (runSynchronously) recurse();
-		//	};
-
-		//	return recurseThenWait;
-		//}
-
 		public Action<TInput> Start<TInput>(Action<TInput, Action<TInput, Action>> bodyFromCaller)
 		{
-			return z => Start<TInput, object>((i, j) =>
+			Action<TInput, Action> recursiveWrapper = null;
+
+			Action<TInput> recurseThenWait = element =>
 			{
-				bodyFromCaller(i, (x, y) => j(x, a => y()));
-				return null;
-			})(z);
+				bodyFromCaller(element, recursiveWrapper);
+
+				Task[] tasks = RemoveAndReturnTasks();
+				Task.WaitAll(tasks);
+			};
+
+			recursiveWrapper = (nextElement, callback) =>
+			{
+				Action recurse = () =>
+				{
+					recurseThenWait(nextElement);
+					callback();
+				};
+
+				bool runSynchronously = false;
+				lock (taskWaitList)
+				{
+					if (taskWaitList.Count < _numberOfTasks)
+						AddTask(recurse);
+					else runSynchronously = true;
+				}
+				if (runSynchronously) recurse();
+			};
+
+			return recurseThenWait;
 		}
+
+		//public Action<TInput> Start<TInput>(Action<TInput, Action<TInput, Action>> bodyFromCaller)
+		//{
+		//	return z => Start<TInput, object>((i, j) =>
+		//	{
+		//		bodyFromCaller(i, (x, y) => j(x, a => y()));
+		//		return () => null;
+		//	})(z);
+		//}
 
 		public TOutput Start<TInput, TOutput>(TInput firstElement, Func<TInput, Action<TInput, Action<TOutput>>, Func<TOutput>> bodyFromCaller)
 		{
@@ -107,7 +108,8 @@ namespace KellySelden.Libraries
 			{
 				Func<TOutput> returnValueGetter = bodyFromCaller(element, recursiveWrapper);
 
-				Task.WaitAll(RemoveAndReturnTasks());
+				Task[] tasks = RemoveAndReturnTasks();
+				Task.WaitAll(tasks);
 
 				return returnValueGetter();
 			};
@@ -115,6 +117,51 @@ namespace KellySelden.Libraries
 			recursiveWrapper = (nextElement, callback) =>
 			{
 				Action recurse = () => callback(recurseThenWaitThenReturnValue(nextElement));
+
+				bool runSynchronously = false;
+				lock (taskWaitList)
+				{
+					if (taskWaitList.Count < _numberOfTasks)
+						AddTask(recurse);
+					else runSynchronously = true;
+				}
+				if (runSynchronously) recurse();
+			};
+
+			return recurseThenWaitThenReturnValue;
+		}
+
+		//public Func<TInput, TOutput> Start<TInput, TOutput>(Func<TInput, Action<TInput, Action<TOutput>>, Func<TOutput>> bodyFromCaller)
+		//{
+		//	return StartCSharp4<TInput, TOutput>((i, j) =>
+		//	{
+		//		return bodyFromCaller(i, (x, y) =>
+		//		{
+		//			j(x, (a, b) =>
+		//			{
+		//				y(b);
+		//			});
+		//		});
+		//	});
+		//}
+
+		public Func<TInput, TOutput> StartCSharp4<TInput, TOutput>(Func<TInput, Action<TInput, Action<TInput, TOutput>>, Func<TOutput>> bodyFromCaller)
+		{
+			Action<TInput, Action<TInput, TOutput>> recursiveWrapper = null;
+
+			Func<TInput, TOutput> recurseThenWaitThenReturnValue = element =>
+			{
+				Func<TOutput> returnValueGetter = bodyFromCaller(element, recursiveWrapper);
+
+				Task[] tasks = RemoveAndReturnTasks();
+				Task.WaitAll(tasks);
+
+				return returnValueGetter();
+			};
+
+			recursiveWrapper = (nextElement, callback) =>
+			{
+				Action recurse = () => callback(nextElement, recurseThenWaitThenReturnValue(nextElement));
 
 				bool runSynchronously = false;
 				lock (taskWaitList)

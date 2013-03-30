@@ -10,7 +10,7 @@ namespace KellySelden.Libraries.Tests
 	public class ParallelRecursionTests
 	{
 		Random _random;
-		readonly ParallelRecursion _parallelRecursion = new ParallelRecursion(4);
+		readonly ParallelRecursion _parallelRecursion = new ParallelRecursion(5);
 
 		void Reseed()
 		{
@@ -50,29 +50,29 @@ namespace KellySelden.Libraries.Tests
 			}
 		}
 
-		Node GetNode(Node node, string nodeString)
-		{
-			if (node.NodeString == nodeString)
-			{
-				return node;
-			}
-			foreach (Node child in node.Children)
-			{
-				Node value = GetNode(child, nodeString);
-				if (value != null)
-				{
-					return value;
-				}
-			}
-			return null;
-		}
+		//Node GetNode(Node node, string nodeString)
+		//{
+		//	if (node.NodeString == nodeString)
+		//	{
+		//		return node;
+		//	}
+		//	foreach (Node child in node.Children)
+		//	{
+		//		Node value = GetNode(child, nodeString);
+		//		if (value != null)
+		//		{
+		//			return value;
+		//		}
+		//	}
+		//	return null;
+		//}
 
 		Node _node1, _node2;
 
 		[TestInitialize]
 		public void TestInitialize()
 		{
-			Action<Node> buildTree = node => BuildTree(node, 4, 4);
+			Action<Node> buildTree = node => BuildTree(node, 5, 5);
 
 			_node1 = new Node("", 0);
 			Reseed();
@@ -86,21 +86,17 @@ namespace KellySelden.Libraries.Tests
 		[TestMethod]
 		public void TestMethod1()
 		{
+			var stopwatch = Stopwatch.StartNew();
 			Action<Node> recursion = null;
-			recursion = parent =>
+			(recursion = parent =>
 			{
 				foreach (Node child in parent.Children)
 				{
 					recursion(child);
 					//Thread.Sleep(10);
 					parent.Value += child.Value;
-					//node1.Value += child.Value;
-					//child.Print();
 				}
-			};
-			var stopwatch = Stopwatch.StartNew();
-			recursion(_node1);
-			_node1.Print();
+			})(_node1);
 			stopwatch.Stop();
 			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 
@@ -111,22 +107,14 @@ namespace KellySelden.Libraries.Tests
 				{
 					recurse(child, () =>
 					{
-						Thread.Sleep(10);
-						parent.Value += child.Value;
-						//node2.Value += c.Value;
-						//c.Print();
-
-						Node otherNode = GetNode(_node1, child.NodeString);
-						if (otherNode.Value != child.Value)
+						//Thread.Sleep(10);
+						lock (parent)
 						{
-							int i = 0;
-							otherNode.Print();
-							child.Print();
+							parent.Value += child.Value;
 						}
 					});
 				}
 			});
-			_node2.Print();
 			stopwatch.Stop();
 			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 
@@ -141,53 +129,6 @@ namespace KellySelden.Libraries.Tests
 			{
 				foreach (Node child in parent.Children)
 				{
-					parent.Value += recursion(child);
-					//Thread.Sleep(10);
-				}
-				return parent.Value;
-			};
-			var stopwatch = Stopwatch.StartNew();
-			_node1.Value = recursion(_node1);
-			stopwatch.Stop();
-			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
-
-			stopwatch.Restart();
-			_node2.Value = _parallelRecursion.Start<Node, int>(_node2, (parent, recurse) =>
-			{
-				foreach (Node child in parent.Children)
-				{
-					recurse(child, v =>
-					{
-						parent.Value += v;
-						Thread.Sleep(10);
-					});
-				}
-				return () =>
-				{
-					Node otherNode = GetNode(_node1, parent.NodeString);
-					if (otherNode.Value != parent.Value)
-					{
-						int i = 0;
-						otherNode.Print();
-						parent.Print();
-					}
-					return parent.Value;
-				};
-			});
-			stopwatch.Stop();
-			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
-
-			Assert.AreEqual(_node1.Value, _node2.Value);
-		}
-
-		[TestMethod]
-		public void TestMethod3()
-		{
-			Func<Node, int> recursion = null;
-			recursion = parent =>
-			{
-				foreach (Node child in parent.Children)
-				{
 					//Thread.Sleep(10);
 					parent.Value += recursion(child);
 				}
@@ -198,33 +139,23 @@ namespace KellySelden.Libraries.Tests
 			stopwatch.Stop();
 			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 
-			int threadId = Thread.CurrentThread.ManagedThreadId;
-
-			stopwatch.Restart();
-			Func<Node, int> func = _parallelRecursion.Start<Node, int>((parent, recurse) =>
+			recursion = _parallelRecursion.Start<Node, int>((parent, recurse) =>
 			{
-				if (Thread.CurrentThread.ManagedThreadId != threadId)
-					Thread.Sleep(10);
 				foreach (Node child in parent.Children)
 				{
 					recurse(child, v =>
 					{
-						parent.Value += v;
+						//Thread.Sleep(10);
+						lock (parent)
+						{
+							parent.Value += v;
+						}
 					});
 				}
-				return () =>
-				{
-					Node otherNode = GetNode(_node1, parent.NodeString);
-					if (otherNode.Value != parent.Value)
-					{
-						int i = 0;
-						otherNode.Print();
-						parent.Print();
-					}
-					return parent.Value;
-				};
+				return () => parent.Value;
 			});
-			_node2.Value = func(_node2);
+			stopwatch.Restart();
+			_node2.Value = recursion(_node2);
 			stopwatch.Stop();
 			Debug.WriteLine(stopwatch.ElapsedMilliseconds);
 

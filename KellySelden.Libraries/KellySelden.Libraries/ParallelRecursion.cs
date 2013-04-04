@@ -10,13 +10,10 @@ namespace KellySelden.Libraries
 		readonly int _numberOfTasks;
 		readonly ConcurrentDictionary<int, ConcurrentBag<Task>> _taskWaitList = new ConcurrentDictionary<int, ConcurrentBag<Task>>();
 
-		public ParallelRecursion(int numberOfThreads)
+		public ParallelRecursion(int? numberOfThreads = null)
 		{
-			if (numberOfThreads < 1)
+			if ((_numberOfTasks = (numberOfThreads ?? Environment.ProcessorCount) - 1) < 0)
 				throw new ArgumentOutOfRangeException("numberOfThreads", numberOfThreads, "must run on a positive number of threads");
-			if (numberOfThreads > Environment.ProcessorCount)
-				throw new ArgumentOutOfRangeException("numberOfThreads", numberOfThreads, "more threads than processors is inefficient");
-			_numberOfTasks = numberOfThreads - 1;
 		}
 
 		Task[] RemoveAndReturnTasks()

@@ -35,7 +35,7 @@ namespace KellySelden.Libraries.Extensions
 			StringComparison comparisonType = StringComparison.CurrentCulture, StringSplitOptions options = StringSplitOptions.None)
 		{
 			IEnumerable<KeyValuePair<int, string>> indexes = new Dictionary<int, string>();
-			indexes = separator.Aggregate(indexes, (current, s) => current.Union(DictionaryExtensions.ToDictionary(str.IndexOfAll(s, comparisonType), i => s)));
+			indexes = separator.Aggregate(indexes, (current, s) => current.Union(str.IndexOfAll(s, comparisonType).ToDictionary(i => str.Substring(i, s.Length))));
 			int lastIndex = 0;
 			var list = new List<KeyValuePair<string, string>>();
 			foreach (KeyValuePair<int, string> kvp in indexes.OrderBy(a => a.Key))

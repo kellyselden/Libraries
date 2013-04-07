@@ -6,20 +6,27 @@ using KellySelden.Libraries.Extensions;
 
 namespace KellySelden.Libraries.Expressions
 {
-	public static class Expression
+	public class Expression
 	{
 		const string ExceptionMessage = "filter expression parentheses do not match up";
 
-		public static T EvaluateExpression<T>(string expression, string[][] operators, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		readonly StringComparison _comparisonType;
+
+		public Expression(StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			_comparisonType = comparisonType;
+		}
+
+		public T EvaluateExpression<T>(string expression, string[][] operators, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
 			return EvaluateTree(ParseExpression(expression, operators), valueLookup, operation);
 		}
 		
-		public static ExpressionBranch ParseExpression(string expression, string[][] operators)
+		public ExpressionBranch ParseExpression(string expression, string[][] operators)
 		{
 			return (ExpressionBranch)ParseExpressionRecursive(expression, operators);
 		}
-		static IExpressionNode ParseExpressionRecursive(string expression, string[][] operators)
+		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators)
 		{
 			if (!expression.Contains(' '))
 			{
@@ -40,7 +47,7 @@ namespace KellySelden.Libraries.Expressions
 			};
 		}
 
-		static string AddImplicitParentheses(string expression, string[][] operators, out Dictionary<int, string> topLevelParentheses)
+		string AddImplicitParentheses(string expression, string[][] operators, out Dictionary<int, string> topLevelParentheses)
 		{
 			while (true)
 			{
@@ -84,7 +91,7 @@ namespace KellySelden.Libraries.Expressions
 				bool cont = false;
 				foreach (string[] operatorGroup in operators)
 				{
-					KeyValuePair<string, string>[] split = maskedExpression.SplitWithSeparator(operatorGroup.Select(s => ' ' + s + ' '), StringComparison.CurrentCultureIgnoreCase).ToArray();
+					KeyValuePair<string, string>[] split = maskedExpression.SplitWithSeparator(operatorGroup.Select(s => ' ' + s + ' '), _comparisonType).ToArray();
 					for (int i = 0, index = 0; i < split.Length; i++)
 					{
 						string separator = split[i].Value ?? "";
@@ -130,11 +137,58 @@ namespace KellySelden.Libraries.Expressions
 			return expression;
 		}
 
-		public static T EvaluateTree<T>(ExpressionBranch tree, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		public T EvaluateTree<T>(ExpressionBranch tree, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
-			Func<IExpressionNode, T> getOrRecurse = node => valueLookup.ContainsKey(node.Expression)
-				? valueLookup[node.Expression] : EvaluateTree((ExpressionBranch)node, valueLookup, operation);
+			string[] operands = valueLookup.Select(v => v.Key).ToArray();
+			if (HasDuplicates(operands))
+				throw new InvalidOperationException("valueLookup has duplicates");
+			if (IsValueUnused(tree.Expression, operands))
+				throw new InvalidOperationException("valueLookup has unused values");
+			if (IsMissingValues(tree, operands))
+				throw new InvalidOperationException("valueLookup is missing values");
+			return EvaluateTreeRecursive(tree, valueLookup, operation);
+		}
+		T EvaluateTreeRecursive<T>(ExpressionBranch tree, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		{
+			Func<IExpressionNode, T> getOrRecurse = node =>
+			{
+				if (valueLookup.Keys.All(operand => !operand.Equals(node.Expression, _comparisonType)))
+				{
+					//adding to lookup to short-circuit duplicate subexpressions, preserving original collection
+					valueLookup = new Dictionary<string, T>(valueLookup) { { node.Expression, EvaluateTreeRecursive((ExpressionBranch)node, valueLookup, operation) } };
+				}
+				return valueLookup.Single(v => v.Key.Equals(node.Expression, _comparisonType)).Value;
+			};
 			return operation(getOrRecurse(tree.Left), getOrRecurse(tree.Right), tree.Operator);
+		}
+
+		public bool IsValueUnused(string expression, IEnumerable<string> operands)
+		{
+			return operands.Any(operand => expression.IndexOf(operand, _comparisonType) == -1);
+		}
+
+		public bool IsMissingValues(ExpressionBranch tree, IEnumerable<string> operands)
+		{
+			Func<IExpressionNode, bool> checkValues = node =>
+			{
+				var branch = node as ExpressionBranch;
+				if (branch != null)
+					return IsMissingValues(branch, operands);
+				return operands.All(operand => node.Expression.IndexOf(operand, _comparisonType) != -1);
+			};
+			return checkValues(tree.Left) || checkValues(tree.Right);
+		}
+
+		public bool HasDuplicates(IEnumerable<string> operands)
+		{
+			var alreadyChecked = new List<string>();
+			foreach (string operand in operands)
+			{
+				if (alreadyChecked.Any(s => s.IndexOf(operand, _comparisonType) != -1))
+					return true;
+				alreadyChecked.Add(operand);
+			}
+			return false;
 		}
 	}
 }

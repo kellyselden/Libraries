@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KellySelden.Libraries
+namespace KellySelden.Libraries.Extensions
 {
 	public static class DictionaryExtensions
 	{

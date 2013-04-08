@@ -21,10 +21,10 @@ namespace KellySelden.Libraries.Expressions
 		{
 			return EvaluateTree(ParseExpression(expression, operators), valueLookup, operation);
 		}
-		
-		public ExpressionBranch ParseExpression(string expression, string[][] operators)
+
+		public IExpressionNode ParseExpression(string expression, string[][] operators)
 		{
-			return (ExpressionBranch)ParseExpressionRecursive(expression, operators);
+			return ParseExpressionRecursive(expression, operators.Reverse().ToArray());
 		}
 		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators)
 		{
@@ -137,49 +137,36 @@ namespace KellySelden.Libraries.Expressions
 			return expression;
 		}
 
-		public T EvaluateTree<T>(ExpressionBranch tree, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		public T EvaluateTree<T>(IExpressionNode node, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
 			string[] operands = valueLookup.Select(v => v.Key).ToArray();
 			if (HasDuplicates(operands))
 				throw new InvalidOperationException("valueLookup has duplicates");
-			if (IsValueUnused(tree.Expression, operands))
+			if (IsValueUnused(node.Expression, operands))
 				throw new InvalidOperationException("valueLookup has unused values");
-			if (IsMissingValues(tree, operands))
+			if (IsMissingValues(node, operands))
 				throw new InvalidOperationException("valueLookup is missing values");
-			return EvaluateTreeRecursive(tree, valueLookup, operation);
+			return EvaluateTreeRecursive(node, valueLookup, operation);
 		}
-		T EvaluateTreeRecursive<T>(ExpressionBranch tree, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		T EvaluateTreeRecursive<T>(IExpressionNode node, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
-			Func<IExpressionNode, T> getOrRecurse = node =>
+			Func<IExpressionNode, T> getOrRecurse = n =>
 			{
-				if (valueLookup.Keys.All(operand => !operand.Equals(node.Expression, _comparisonType)))
+				if (valueLookup.Keys.All(operand => !operand.Equals(n.Expression, _comparisonType)))
 				{
 					//adding to lookup to short-circuit duplicate subexpressions, preserving original collection
-					valueLookup = new Dictionary<string, T>(valueLookup) { { node.Expression, EvaluateTreeRecursive((ExpressionBranch)node, valueLookup, operation) } };
+					valueLookup = new Dictionary<string, T>(valueLookup) { { n.Expression, EvaluateTreeRecursive(n, valueLookup, operation) } };
 				}
-				return valueLookup.Single(v => v.Key.Equals(node.Expression, _comparisonType)).Value;
+				return valueLookup.Single(v => v.Key.Equals(n.Expression, _comparisonType)).Value;
 			};
-			return operation(getOrRecurse(tree.Left), getOrRecurse(tree.Right), tree.Operator);
+
+			var branch = node as ExpressionBranch;
+			if (branch == null)
+				return getOrRecurse(node);
+			return operation(getOrRecurse(branch.Left), getOrRecurse(branch.Right), branch.Operator);
 		}
 
-		public bool IsValueUnused(string expression, IEnumerable<string> operands)
-		{
-			return operands.Any(operand => expression.IndexOf(operand, _comparisonType) == -1);
-		}
-
-		public bool IsMissingValues(ExpressionBranch tree, IEnumerable<string> operands)
-		{
-			Func<IExpressionNode, bool> checkValues = node =>
-			{
-				var branch = node as ExpressionBranch;
-				if (branch != null)
-					return IsMissingValues(branch, operands);
-				return operands.All(operand => node.Expression.IndexOf(operand, _comparisonType) != -1);
-			};
-			return checkValues(tree.Left) || checkValues(tree.Right);
-		}
-
-		public bool HasDuplicates(IEnumerable<string> operands)
+		public bool HasDuplicates(string[] operands)
 		{
 			var alreadyChecked = new List<string>();
 			foreach (string operand in operands)
@@ -189,6 +176,20 @@ namespace KellySelden.Libraries.Expressions
 				alreadyChecked.Add(operand);
 			}
 			return false;
+		}
+
+		public bool IsValueUnused(string expression, string[] operands)
+		{
+			return operands.Any(operand => expression.IndexOf(operand, _comparisonType) == -1);
+		}
+
+		public bool IsMissingValues(IExpressionNode node, string[] operands)
+		{
+			var branch = node as ExpressionBranch;
+			if (branch == null)
+				return operands.All(operand => node.Expression.IndexOf(operand, _comparisonType) == -1);
+			return IsMissingValues(branch.Left, operands)
+				|| IsMissingValues(branch.Right, operands);
 		}
 	}
 }

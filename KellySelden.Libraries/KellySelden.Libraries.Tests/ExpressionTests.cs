@@ -24,7 +24,7 @@ namespace KellySelden.Libraries.Tests
 				{ "group5", new[] { 2, 3 } }
 			}, SqlOperations);
 
-			var z = new Expression(StringComparison.CurrentCultureIgnoreCase).EvaluateTree(new Expression(StringComparison.CurrentCultureIgnoreCase).ParseExpression("group0 and (Group1 OR group2)", SqlOperators), new Dictionary<string, IEnumerable<int>>
+			var z = new Expression(StringComparison.CurrentCultureIgnoreCase).EvaluateTree(new Expression(StringComparison.CurrentCultureIgnoreCase).ParseExpression(" group0 and  ( Group1 OR group2) ", SqlOperators), new Dictionary<string, IEnumerable<int>>
 			{
 				{ "Group0", new[] { 0, 3, 4 } },
 				{ "group1", new[] { 0, 1, 2 } },
@@ -36,7 +36,7 @@ namespace KellySelden.Libraries.Tests
 				{ "Group0", new[] { 0, 3, 4 } }
 			}, SqlOperations);
 
-			var value = new Expression().EvaluateExpression("var0 + (var1 - var2 * var3) / var4", new[]
+			var value = new Expression(ignoreWhitespace:true).EvaluateExpression("var0+(var1 - var2 * var3) / var4", new[]
 			{
 				new[] { "*", "/" },
 				new[] { "+", "-" }

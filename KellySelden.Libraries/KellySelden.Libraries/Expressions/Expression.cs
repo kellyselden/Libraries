@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using KellySelden.Libraries.Extensions;
 
 namespace KellySelden.Libraries.Expressions
@@ -11,10 +12,12 @@ namespace KellySelden.Libraries.Expressions
 		const string ExceptionMessage = "filter expression parentheses do not match up";
 
 		readonly StringComparison _comparisonType;
+		readonly bool _ignoreWhitespace;
 
-		public Expression(StringComparison comparisonType = StringComparison.CurrentCulture)
+		public Expression(StringComparison comparisonType = StringComparison.CurrentCulture, bool ignoreWhitespace = false)
 		{
 			_comparisonType = comparisonType;
+			_ignoreWhitespace = ignoreWhitespace;
 		}
 
 		public T EvaluateExpression<T>(string expression, string[][] operators, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
@@ -24,30 +27,34 @@ namespace KellySelden.Libraries.Expressions
 
 		public IExpressionNode ParseExpression(string expression, string[][] operators)
 		{
-			return ParseExpressionRecursive(expression, operators.Reverse().ToArray());
+			expression = _ignoreWhitespace ? expression.Replace(" ", "") : Regex.Replace(expression, "\\s+", " ").Replace("( ", "(").Replace(" )", ")").Trim();
+
+			return ParseExpressionRecursive(expression, operators.Reverse().ToArray(),
+				operators.Aggregate((cur, next) => cur.Union(next).ToArray()));
 		}
-		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators)
+		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators, string[] operatorsFlattened)
 		{
-			if (!expression.Contains(' '))
+			if (!operatorsFlattened.Any(op => expression.Contains(op)))
 			{
 				return new ExpressionLeaf { Expression = expression };
 			}
 
 			Dictionary<int, string> topLevelParentheses;
-			expression = AddImplicitParentheses(expression, operators, out topLevelParentheses);
+			string @operator;
+			expression = AddImplicitParentheses(expression, operators, out topLevelParentheses, out @operator);
 
 			var left = topLevelParentheses.First();
 			var right = topLevelParentheses.Last();
 			return new ExpressionBranch
 			{
-				Left = ParseExpressionRecursive(left.Value, operators),
-				Right = ParseExpressionRecursive(right.Value, operators),
-				Operator = expression.Substring(left.Value.Length + 3, right.Key - left.Value.Length - 5),
+				Left = ParseExpressionRecursive(left.Value, operators, operatorsFlattened),
+				Right = ParseExpressionRecursive(right.Value, operators, operatorsFlattened),
+				Operator = @operator,
 				Expression = expression
 			};
 		}
 
-		string AddImplicitParentheses(string expression, string[][] operators, out Dictionary<int, string> topLevelParentheses)
+		string AddImplicitParentheses(string expression, string[][] operators, out Dictionary<int, string> topLevelParentheses, out string @operator)
 		{
 			while (true)
 			{
@@ -88,12 +95,16 @@ namespace KellySelden.Libraries.Expressions
 					}
 				}
 
+				@operator = null;
 				bool cont = false;
 				foreach (string[] operatorGroup in operators)
 				{
-					KeyValuePair<string, string>[] split = maskedExpression.SplitWithSeparator(operatorGroup.Select(s => ' ' + s + ' '), _comparisonType).ToArray();
+					IEnumerable<string> newOperatorGroup = _ignoreWhitespace ? operatorGroup : operatorGroup.Select(op => ' ' + op + ' ');
+					KeyValuePair<string, string>[] split = maskedExpression.SplitWithSeparator(newOperatorGroup, _comparisonType).ToArray();
 					for (int i = 0, index = 0; i < split.Length; i++)
 					{
+						if (split[i].Value != null)
+							@operator = split[i].Value.Trim();
 						string separator = split[i].Value ?? "";
 						string subexpression = split[i].Key;
 						if (subexpression == maskedExpression) break;
@@ -190,6 +201,11 @@ namespace KellySelden.Libraries.Expressions
 				return operands.All(operand => node.Expression.IndexOf(operand, _comparisonType) == -1);
 			return IsMissingValues(branch.Left, operands)
 				|| IsMissingValues(branch.Right, operands);
+		}
+
+		public bool DoesAnyOperandContainOperator()
+		{
+			return false;
 		}
 	}
 }

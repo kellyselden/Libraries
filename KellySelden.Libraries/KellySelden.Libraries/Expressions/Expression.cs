@@ -202,10 +202,5 @@ namespace KellySelden.Libraries.Expressions
 			return IsMissingValues(branch.Left, operands)
 				|| IsMissingValues(branch.Right, operands);
 		}
-
-		public bool DoesAnyOperandContainOperator()
-		{
-			return false;
-		}
 	}
 }

@@ -11,5 +11,11 @@ namespace KellySelden.Libraries.Extensions
 		{
 			return source.ToDictionary(x => x, valueSelector);
 		}
+
+		public static IDictionary<TKey, TElement> Union<TKey, TElement>(this IDictionary<TKey, TElement> first,
+			IDictionary<TKey, TElement> second)
+		{
+			return Enumerable.Union(first, second).GroupBy(x => x.Key).ToDictionary(g => g.Key, g => g.Single().Value);
+		}
 	}
 }

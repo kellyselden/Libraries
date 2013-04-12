@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Web",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Mvc", "KellySelden.Libraries.Mvc\KellySelden.Libraries.Mvc.csproj", "{18516151-EDD0-404A-86F5-5CC868B58AD9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Sql", "KellySelden.Libraries.Sql\KellySelden.Libraries.Sql.csproj", "{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{18516151-EDD0-404A-86F5-5CC868B58AD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18516151-EDD0-404A-86F5-5CC868B58AD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18516151-EDD0-404A-86F5-5CC868B58AD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

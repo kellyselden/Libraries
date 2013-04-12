@@ -34,7 +34,7 @@ namespace KellySelden.Libraries.Expressions
 		}
 		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators, string[] operatorsFlattened)
 		{
-			if (!operatorsFlattened.Any(op => expression.Contains(op)))
+			if (operatorsFlattened.All(op => !expression.Contains(op, _comparisonType)))
 			{
 				return new ExpressionLeaf { Expression = expression };
 			}
@@ -182,7 +182,7 @@ namespace KellySelden.Libraries.Expressions
 			var alreadyChecked = new List<string>();
 			foreach (string operand in operands)
 			{
-				if (alreadyChecked.Any(s => s.IndexOf(operand, _comparisonType) != -1))
+				if (alreadyChecked.Any(s => s.Contains(operand, _comparisonType)))
 					return true;
 				alreadyChecked.Add(operand);
 			}
@@ -191,14 +191,14 @@ namespace KellySelden.Libraries.Expressions
 
 		public bool IsValueUnused(string expression, string[] operands)
 		{
-			return operands.Any(operand => expression.IndexOf(operand, _comparisonType) == -1);
+			return operands.Any(operand => !expression.Contains(operand, _comparisonType));
 		}
 
 		public bool IsMissingValues(IExpressionNode node, string[] operands)
 		{
 			var branch = node as ExpressionBranch;
 			if (branch == null)
-				return operands.All(operand => node.Expression.IndexOf(operand, _comparisonType) == -1);
+				return operands.All(operand => !node.Expression.Contains(operand, _comparisonType));
 			return IsMissingValues(branch.Left, operands)
 				|| IsMissingValues(branch.Right, operands);
 		}

@@ -41,12 +41,21 @@ namespace KellySelden.Libraries.EntityFramework
 			var tableName = databaseName == null ? _entityType.Name : (string)databaseName.GetType().GetProperty("Name").GetValue(databaseName, null);
 			_sqlBatchProcess = new SqlBatchProcess((SqlConnection)context.Database.Connection, tableName);
 		}
-
+		
+		public void AddEntitiesToInsert(IEnumerable<T> entities)
+		{
+			foreach (T entity in entities)
+				AddEntityToInsert(entity);
+		}
+		public void AddEntitiesToUpdate(IEnumerable<T> entities)
+		{
+			foreach (T entity in entities)
+				AddEntityToUpdate(entity);
+		}
 		public void AddEntityToInsert(T entity)
 		{
 			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, true });
 		}
-
 		public void AddEntityToUpdate(T entity)
 		{
 			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, false });
@@ -102,9 +111,9 @@ namespace KellySelden.Libraries.EntityFramework
 				_sqlBatchProcess.AddRowToUpdate(keyColumns, columns);
 		}
 
-		public void Process()
+		public void Process(int? timeout = null, int batchSize = 20000)
 		{
-			_sqlBatchProcess.Process();
+			_sqlBatchProcess.Process(timeout, batchSize);
 		}
 	}
 }

@@ -9,17 +9,19 @@ namespace KellySelden.Libraries.Sql
 {
 	public class SqlBatchProcess
 	{
-		readonly SqlConnection _connection;
+		readonly SqlConnectionWrapper _connectionWrapper;
 		readonly string _tableName;
 		readonly List<IDictionary<string, object>> _insertRows = new List<IDictionary<string, object>>();
 		readonly List<KeyValuePair<IDictionary<string, object>, IDictionary<string, object>>> _updateRows = new List<KeyValuePair<IDictionary<string, object>, IDictionary<string, object>>>();
+		readonly List<IDictionary<string, object>> _deleteRows = new List<IDictionary<string, object>>();
 		
 		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
-		public SqlBatchProcess(string connectionString, string tableName) : this(new SqlConnection(connectionString), tableName) { }
+		public SqlBatchProcess(string connectionString, string tableName) : this(new SqlConnectionWrapper(connectionString), tableName) { }
 		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
-		public SqlBatchProcess(SqlConnection connection, string tableName)
+		public SqlBatchProcess(SqlConnection connection, string tableName) : this(new SqlConnectionWrapper(connection), tableName) { }
+		SqlBatchProcess(SqlConnectionWrapper connectionWrapper, string tableName)
 		{
-			_connection = connection;
+			_connectionWrapper = connectionWrapper;
 			_tableName = tableName;
 		}
 
@@ -35,6 +37,12 @@ namespace KellySelden.Libraries.Sql
 			AddEmptyRowsToUpdate(row);
 			AddRow(_updateRows[row].Key, keys);
 			AddRow(_updateRows[row].Value, columns);
+		}
+		public void AddRowToDelete(IDictionary<string, object> keys)
+		{
+			int row = _deleteRows.Count;
+			AddEmptyRowsToDelete(row);
+			AddRow(_deleteRows[row], keys);
 		}
 		void AddRow(IDictionary<string, object> row, IEnumerable<KeyValuePair<string, object>> columns)
 		{
@@ -55,7 +63,12 @@ namespace KellySelden.Libraries.Sql
 		public void AddColumnToUpdate(int row, string column, object value)
 		{
 			AddEmptyRowsToUpdate(row);
-			AddColumn(_updateRows[row].Value, column, value);
+			AddColumn(_deleteRows[row], column, value);
+		}
+		public void AddKeyForDelete(int row, string column, object value)
+		{
+			AddEmptyRowsToDelete(row);
+			AddColumn(_deleteRows[row], column, value);
 		}
 		void AddColumn(IDictionary<string, object> row, string column, object value)
 		{
@@ -72,19 +85,27 @@ namespace KellySelden.Libraries.Sql
 			while (_updateRows.Count <= row)
 				_updateRows.Add(new KeyValuePair<IDictionary<string, object>, IDictionary<string, object>>(new Dictionary<string, object>(), new Dictionary<string, object>()));
 		}
+		void AddEmptyRowsToDelete(int row)
+		{
+			while (_deleteRows.Count <= row)
+				_deleteRows.Add(new Dictionary<string, object>());
+		}
 
 		public void Process(int? timeout = null, int batchSize = 20000)
 		{
 			IDictionary<string, object> insertRow = _insertRows.FirstOrDefault();
 			KeyValuePair<IDictionary<string, object>, IDictionary<string, object>> updateRow = _updateRows.FirstOrDefault();
-			if (insertRow == null && updateRow.Key == null)
+			IDictionary<string, object> deleteRow = _deleteRows.FirstOrDefault();
+			if (insertRow == null && updateRow.Key == null && deleteRow == null)
 				return;
 
 			var table = new DataTable(_tableName);
 			table.Columns.AddRange(GetColumnsForUnion(insertRow)
 				.Union(GetColumnsForUnion(updateRow.Key)
-				.Union(GetColumnsForUnion(updateRow.Value)))
+				.Union(GetColumnsForUnion(updateRow.Value))
+				.Union(GetColumnsForUnion(deleteRow)))
 				.Select(c => new DataColumn(c)).ToArray());
+			using (_connectionWrapper)
 			using (var sqlDataAdapter = new SqlDataAdapter { UpdateBatchSize = batchSize })
 			{
 				if (insertRow != null)
@@ -109,7 +130,25 @@ namespace KellySelden.Libraries.Sql
 						string.Join(", ", updateRow.Key.Keys.Select(k => k + " = @" + k))),
 						timeout, updateRow.Key.Union(updateRow.Value));
 				}
+				if (deleteRow != null)
+				{
+					AddRows(table, _deleteRows, row =>
+					{
+						row.AcceptChanges();
+						row.Delete();
+					});
+					sqlDataAdapter.DeleteCommand = PrepareCommand(
+						string.Format("DELETE FROM {0} WHERE {1}", _tableName,
+						string.Join(", ", deleteRow.Keys.Select(k => k + " = @" + k))),
+						timeout, deleteRow);
+				}
 				sqlDataAdapter.Update(table);
+				if (sqlDataAdapter.InsertCommand != null)
+					sqlDataAdapter.InsertCommand.Dispose();
+				if (sqlDataAdapter.UpdateCommand != null)
+					sqlDataAdapter.UpdateCommand.Dispose();
+				if (sqlDataAdapter.DeleteCommand != null)
+					sqlDataAdapter.DeleteCommand.Dispose();
 			}
 		}
 
@@ -132,7 +171,7 @@ namespace KellySelden.Libraries.Sql
 
 		SqlCommand PrepareCommand(string sql, int? timeout, IEnumerable<KeyValuePair<string, object>> row)
 		{
-			var command = new SqlCommand(sql, _connection) { UpdatedRowSource = UpdateRowSource.None };
+			var command = new SqlCommand(sql, _connectionWrapper.Connection) { UpdatedRowSource = UpdateRowSource.None };
 			if (timeout.HasValue)
 				command.CommandTimeout = timeout.Value;
 			foreach (var column in row)

@@ -38,6 +38,7 @@
     <Compile Include="SqlBatchProcess.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="SmartSqlBulkCopy.cs" />
+    <Compile Include="SqlConnectionWrapper.cs" />
     <Compile Include="SqlWrapper.cs" />
   </ItemGroup>
   <ItemGroup>

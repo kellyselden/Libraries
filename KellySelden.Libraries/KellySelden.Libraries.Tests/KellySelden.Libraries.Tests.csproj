@@ -39,6 +39,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -58,6 +59,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\KellySelden.Libraries.Sql\KellySelden.Libraries.Sql.csproj">
+      <Project>{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}</Project>
+      <Name>KellySelden.Libraries.Sql</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KellySelden.Libraries\KellySelden.Libraries.csproj">
       <Project>{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}</Project>
       <Name>KellySelden.Libraries</Name>

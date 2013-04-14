@@ -52,16 +52,27 @@ namespace KellySelden.Libraries.EntityFramework
 			foreach (T entity in entities)
 				AddEntityToUpdate(entity);
 		}
+		public void AddEntitiesToDelete(IEnumerable<T> entities)
+		{
+			foreach (T entity in entities)
+				AddEntityToDelete(entity);
+		}
 		public void AddEntityToInsert(T entity)
 		{
-			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, true });
+			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Insert });
 		}
 		public void AddEntityToUpdate(T entity)
 		{
-			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, false });
+			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Update });
+		}
+		public void AddEntityToDelete(T entity)
+		{
+			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Delete });
 		}
 
-		void ProcessProperties<TKey, TValue>(T entity, IDictionary<TKey, TValue> mappedProperties, bool insert)
+		enum DbOperation { Insert, Update, Delete }
+
+		void ProcessProperties<TKey, TValue>(T entity, IDictionary<TKey, TValue> mappedProperties, DbOperation operation)
 		{
 			var mappedPropertyNames = new List<string>();
 			var keyColumns = new Dictionary<string, object>();
@@ -82,7 +93,7 @@ namespace KellySelden.Libraries.EntityFramework
 				
 				if (_keyProperties.Contains(propertyName))
 				{
-					if (!insert)
+					if (operation != DbOperation.Insert)
 					{
 						keyColumns.Add(columnName, columnValue);
 						continue;
@@ -96,7 +107,8 @@ namespace KellySelden.Libraries.EntityFramework
 						continue;
 				}
 
-				columns.Add(columnName, columnValue);
+				if (operation != DbOperation.Delete)
+					columns.Add(columnName, columnValue);
 			}
 			foreach (PropertyInfo property in _entityType.GetProperties())
 			{
@@ -105,10 +117,18 @@ namespace KellySelden.Libraries.EntityFramework
 					&& property.PropertyType.Assembly != _entityType.Assembly) //terrible way to guess property is a table map, fix later
 					columns.Add(property.Name, property.GetValue(entity, null));
 			}
-			if (insert)
-				_sqlBatchProcess.AddRowToInsert(columns);
-			else
-				_sqlBatchProcess.AddRowToUpdate(keyColumns, columns);
+			switch (operation)
+			{
+				case DbOperation.Insert:
+					_sqlBatchProcess.AddRowToInsert(columns);
+					break;
+				case DbOperation.Update:
+					_sqlBatchProcess.AddRowToUpdate(keyColumns, columns);
+					break;
+				case DbOperation.Delete:
+					_sqlBatchProcess.AddRowToDelete(keyColumns);
+					break;
+			}
 		}
 
 		public void Process(int? timeout = null, int batchSize = 20000)

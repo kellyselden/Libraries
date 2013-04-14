@@ -7,18 +7,18 @@ namespace KellySelden.Libraries.Sql
 {
 	public class SmartSqlBulkCopy
 	{
-		readonly SqlConnection _connection;
+		readonly SqlConnectionWrapper _connectionWrapper;
 		readonly DataTable _tableDefinition;
 		readonly List<IDictionary<string, object>> _rows = new List<IDictionary<string, object>>();
 
 		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
-		public SmartSqlBulkCopy(string connectionString, string tableName) : this(new SqlConnection(connectionString), tableName) { }
+		public SmartSqlBulkCopy(string connectionString, string tableName) : this(new SqlConnectionWrapper(connectionString), tableName) { }
 		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
-		public SmartSqlBulkCopy(SqlConnection connection, string tableName)
+		public SmartSqlBulkCopy(SqlConnection connection, string tableName) : this(new SqlConnectionWrapper(connection), tableName) { }
+		SmartSqlBulkCopy(SqlConnectionWrapper connectionWrapper, string tableName)
 		{
-			_connection = connection;
-
-			_tableDefinition = SqlWrapper.ExecuteDataset(_connection.ConnectionString, "SELECT TOP 0 * FROM " + tableName).Tables[0];
+			_connectionWrapper = connectionWrapper;
+			_tableDefinition = SqlWrapper.ExecuteDataset(_connectionWrapper.Connection, "SELECT TOP 0 * FROM " + tableName).Tables[0];
 			_tableDefinition.TableName = tableName;
 		}
 
@@ -65,7 +65,8 @@ namespace KellySelden.Libraries.Sql
 				_tableDefinition.Rows.Add(values);
 			}
 
-			using (var bulkCopy = new SqlBulkCopy(_connection)
+			using (_connectionWrapper)
+			using (var bulkCopy = new SqlBulkCopy(_connectionWrapper.Connection)
 			{
 				BatchSize = batchSize,
 				DestinationTableName = _tableDefinition.TableName
@@ -75,9 +76,9 @@ namespace KellySelden.Libraries.Sql
 				{
 					bulkCopy.BulkCopyTimeout = timeout.Value;
 				}
-				_connection.Open();
+				_connectionWrapper.Connection.Open();
 				bulkCopy.WriteToServer(_tableDefinition);
-				_connection.Close();
+				_connectionWrapper.Connection.Close();
 			}
 
 			_rows.Clear();

@@ -8,11 +8,11 @@ namespace KellySelden.Libraries.EntityFramework
 {
 	public class EntityFrameworkRepository : IRepository
 	{
-		protected readonly DbContext Context;
+		readonly DbContext _context;
 
 		public EntityFrameworkRepository(DbContext context)
 		{
-			Context = context;
+			_context = context;
 		}
 
 		public virtual T GetEntity<T>(int id) where T : class, IEntity
@@ -22,7 +22,7 @@ namespace KellySelden.Libraries.EntityFramework
 
 		public virtual IQueryable<T> GetEntities<T>() where T : class
 		{
-			return Context.Set<T>();
+			return _context.Set<T>();
 		}
 
 		public virtual void SaveEntity<T>(T entity) where T : class, IEntity
@@ -33,8 +33,8 @@ namespace KellySelden.Libraries.EntityFramework
 		public virtual void SaveEntities<T>(IEnumerable<T> entities) where T : class, IEntity
 		{
 			foreach (T entity in entities)
-				Context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
-			Context.SaveChanges();
+				_context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+			_context.SaveChanges();
 		}
 
 		public virtual void DeleteEntity<T>(T entity) where T : class
@@ -45,8 +45,8 @@ namespace KellySelden.Libraries.EntityFramework
 		public virtual void DeleteEntities<T>(IEnumerable<T> entities) where T : class
 		{
 			foreach (T entity in entities)
-				Context.Entry(entity).State = EntityState.Deleted;
-			Context.SaveChanges();
+				_context.Entry(entity).State = EntityState.Deleted;
+			_context.SaveChanges();
 		}
 	}
 }

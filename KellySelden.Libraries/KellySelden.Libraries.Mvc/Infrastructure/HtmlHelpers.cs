@@ -1,15 +1,100 @@
 ﻿using System;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
 using System.Web.Handlers;
 using System.Web.Mvc;
-using System.Web.UI;
+using System.Web.Mvc.Html;
+using System.Web.WebPages;
 
 namespace KellySelden.Libraries.Mvc.Infrastructure
 {
 	public static class HtmlHelpers
 	{
+		public static MvcHtmlString FileUpload(this HtmlHelper html, string name, string value)
+		{
+			var file = new TagBuilder("input");
+			file.Attributes["type"] = "file";
+			file.Attributes["name"] = value;
+			file.Attributes["onchange"] = "$(this).next().click()";
+
+			var submit = new TagBuilder("input");
+			submit.Attributes["type"] = "submit";
+			submit.Attributes["name"] = name;
+			submit.Attributes["value"] = value;
+			submit.Attributes["style"] = "display:none";
+
+			return MvcHtmlString.Create(file.ToString(TagRenderMode.SelfClosing) + submit.ToString(TagRenderMode.SelfClosing));
+		}
+
+		public static MvcHtmlString Popup(this HtmlHelper html, string show, string hide, Func<object, HelperResult> template, object htmlAttributes = null)
+		{
+			html.QueueEmbeddedScript(KellySeldenLinks.Scripts.Popup_js);
+			html.QueueEmbeddedStyle(KellySeldenLinks.Content.Popup_css);
+
+			string id = Guid.NewGuid().ToString();
+
+			var child = new TagBuilder("div");
+			child.Attributes["id"] = id;
+			child.AddCssClass("Popup");
+			child.MergeAttributes(HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes));
+			child.InnerHtml = template(null).ToString();
+
+			var script = new TagBuilder("script");
+			script.Attributes["type"] = "text/javascript";
+			script.InnerHtml = string.Format("Popup_init($('#{0}'), '{1}', '{2}');", id, show, hide);
+
+			var parent = new TagBuilder("div");
+			parent.InnerHtml = child.ToString() + script.ToString();
+
+			return MvcHtmlString.Create(parent.ToString());
+		}
+
+		public static MvcHtmlString DisplayRow(this HtmlHelper html, string expression)
+		{
+			return CreateRow(html, expression,
+				"<span>" + html.Display(expression) + "</span>");
+		}
+
+		public static MvcHtmlString DisplayRowFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
+		{
+			return CreateRow(html, expression,
+				"<span>" + html.DisplayFor(expression) + "</span>");
+		}
+
+		public static MvcHtmlString EditorRow(this HtmlHelper html, string expression)
+		{
+			return CreateRow(html, expression,
+				html.Editor(expression).ToString() +
+				html.ValidationMessage(expression).ToString());
+		}
+
+		public static MvcHtmlString EditorRowFor<TModel, TValue>(this HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression)
+		{
+			return CreateRow(html, expression,
+				html.EditorFor(expression).ToString() +
+				html.ValidationMessageFor(expression).ToString());
+		}
+
+		static MvcHtmlString CreateRow(HtmlHelper html, string expression, string content)
+		{
+			return CreateRow(ExpressionHelper.GetExpressionText(expression), html.Label(expression) + content);
+		}
+		static MvcHtmlString CreateRow<TModel, TValue>(HtmlHelper<TModel> html, Expression<Func<TModel, TValue>> expression, string content)
+		{
+			return CreateRow(ExpressionHelper.GetExpressionText(expression), html.LabelFor(expression) + content);
+		}
+		static MvcHtmlString CreateRow(string id, string content)
+		{
+			return MvcHtmlString.Create("<div id=\"" + TagBuilder.CreateSanitizedId(id) + "Row\">" + content + "</div>");
+		}
+
+		public static IHtmlString Markup(this HtmlHelper html, Func<object, IHtmlString> func)
+		{
+			return func(null);
+		}
+
 		public static IHtmlString ActionButton(this HtmlHelper html, string value, string action, string controller = null, object routeValues = null)
 		{
 			var button = new TagBuilder("input");
@@ -88,7 +173,7 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 
 		static readonly Type Me = typeof(HtmlHelpers);
 		static readonly string Namespace = Me.Assembly.FullName.Substring(0, Me.Assembly.FullName.IndexOf(','));
-		static MethodInfo GetWebResourceUrlMethod = typeof(AssemblyResourceLoader).GetMethod(
+		static readonly MethodInfo GetWebResourceUrlMethod = typeof(AssemblyResourceLoader).GetMethod(
 			"GetWebResourceUrl",
 			BindingFlags.NonPublic | BindingFlags.Static, null,
 			new[] { typeof(Type), typeof(string) }, null);

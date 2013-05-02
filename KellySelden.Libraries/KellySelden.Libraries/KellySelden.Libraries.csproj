@@ -37,6 +37,7 @@
     <Compile Include="Expressions\ExpressionBranch.cs" />
     <Compile Include="Expressions\ExpressionLeaf.cs" />
     <Compile Include="Expressions\IExpressionNode.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="ParallelRecursion.cs" />

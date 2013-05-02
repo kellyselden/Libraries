@@ -6,7 +6,7 @@ namespace KellySelden.Libraries.Extensions
 {
 	public static class DictionaryExtensions
 	{
-		public static IDictionary<TSource, TElement> ToDictionary<TSource, TElement>(this IEnumerable<TSource> source,
+		public static IDictionary<TSource, TElement> ToDictionaryValue<TSource, TElement>(this IEnumerable<TSource> source,
 			Func<TSource, TElement> valueSelector)
 		{
 			return source.ToDictionary(x => x, valueSelector);

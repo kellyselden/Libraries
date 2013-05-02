@@ -58,8 +58,8 @@ namespace KellySelden.Libraries.Expressions
 		{
 			while (true)
 			{
-				var leftIndexes = DictionaryExtensions.ToDictionary(expression.IndexOfAll('('), i => '(');
-				var rightIndexes = DictionaryExtensions.ToDictionary(expression.IndexOfAll(')'), i => ')');
+				var leftIndexes = DictionaryExtensions.ToDictionaryValue(expression.IndexOfAll('('), i => '(');
+				var rightIndexes = DictionaryExtensions.ToDictionaryValue(expression.IndexOfAll(')'), i => ')');
 				if (leftIndexes.Count != rightIndexes.Count)
 				{
 					throw new InvalidOperationException(ExceptionMessage);

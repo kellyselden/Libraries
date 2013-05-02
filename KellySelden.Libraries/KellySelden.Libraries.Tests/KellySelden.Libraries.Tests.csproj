@@ -57,6 +57,7 @@
     <Compile Include="ExpressionTests.cs" />
     <Compile Include="ParallelRecursionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DictionaryTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KellySelden.Libraries.Sql\KellySelden.Libraries.Sql.csproj">

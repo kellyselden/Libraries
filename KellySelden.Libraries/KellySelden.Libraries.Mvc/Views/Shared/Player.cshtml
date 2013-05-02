@@ -1,0 +1,33 @@
+﻿@using KellySelden.Libraries.Mvc.Infrastructure
+@using KellySelden.Libraries.Mvc.Models
+
+@model PlayerModel
+
+@{
+    Html.QueueEmbeddedScript(KellySeldenLinks.Scripts.flowplayer_3_2_6_min_js);
+    Html.QueueEmbeddedScript(KellySeldenLinks.Scripts.Player_js);
+    Html.QueueEmbeddedStyle(KellySeldenLinks.Content.Player_css);
+
+	string id = Guid.NewGuid().ToString();
+	string href = null, style = null, src = null;
+    if (Model.Type != PlayerType.YouTube)
+    {
+        href = Model.FilePath;
+    }
+    if (Model.Type == PlayerType.Video)
+    {
+        style = string.Format("background-image: url({0});", Model.SplashPath);
+        src = Html.GetWebResourceUrl(KellySeldenLinks.flowplayer.play_large_png);
+    }
+    style += string.Format("height: {0}px; width: {1}px;", Model.Height, Model.Width);
+}
+
+<div id="@id" class="@KellySeldenMVC.Shared.Views.ViewNames.Player" href="@href" style="@style">
+	@if (src != null)
+	{
+		<img src="@src" />
+	}
+</div>
+<script type="text/javascript">
+    Player('@id', '@Model.Type', '@Model.FilePath')
+</script>

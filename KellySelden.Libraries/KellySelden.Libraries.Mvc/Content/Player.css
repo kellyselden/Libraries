@@ -1,0 +1,13 @@
+﻿.Player
+{
+	margin:0 auto;
+	cursor:pointer;
+	position:relative;
+}
+.Player > img
+{
+	position:absolute;
+	/* it would be nice if i could get these to be dynamic */
+	top:123.5px;
+	left:218.5px;
+}

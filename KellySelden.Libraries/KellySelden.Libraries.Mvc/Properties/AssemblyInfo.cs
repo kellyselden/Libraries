@@ -37,7 +37,9 @@ using System.Web.UI;
 
 [assembly: WebResource("KellySelden.Libraries.Mvc.Scripts.flowplayer-3.2.6.min.js", "text/javascript")]
 [assembly: WebResource("KellySelden.Libraries.Mvc.Scripts.Player.js", "text/javascript")]
+[assembly: WebResource("KellySelden.Libraries.Mvc.Scripts.Popup.js", "text/javascript")]
 
 [assembly: WebResource("KellySelden.Libraries.Mvc.Content.Player.css", "text/css")]
+[assembly: WebResource("KellySelden.Libraries.Mvc.Content.Popup.css", "text/css")]
 
 [assembly: WebResource("KellySelden.Libraries.Mvc.flowplayer.play_large.png", "image/png")]

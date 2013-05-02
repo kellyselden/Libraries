@@ -54,6 +54,8 @@ namespace KellySeldenLinks
         public static readonly string flowplayer_3_2_6_min_js = Url("flowplayer-3.2.6.min.js");
         public static readonly string Player_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Player.min.js") ? Url("Player.min.js") : Url("Player.js");
                       
+        public static readonly string Popup_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Popup.min.js") ? Url("Popup.min.js") : Url("Popup.js");
+                      
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -62,6 +64,8 @@ namespace KellySeldenLinks
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
         public static readonly string Player_css = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Player.min.css") ? Url("Player.min.css") : Url("Player.css");
+             
+        public static readonly string Popup_css = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Popup.min.css") ? Url("Popup.min.css") : Url("Popup.css");
              
     }
 

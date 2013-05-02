@@ -128,6 +128,8 @@
     <EmbeddedResource Include="flowplayer\play_large.png" />
     <EmbeddedResource Include="Scripts\flowplayer-3.2.6.min.js" />
     <EmbeddedResource Include="Scripts\Player.js" />
+    <EmbeddedResource Include="Content\Popup.css" />
+    <EmbeddedResource Include="Scripts\Popup.js" />
     <Content Include="T4MVC.tt.settings.xml" />
     <Content Include="Views\Web.config" />
   </ItemGroup>

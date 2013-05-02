@@ -148,17 +148,17 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="web.config" />
+    <Content Include="Web.config" />
     <Content Include="T4MVC.tt.hooks.t4" />
     <Content Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </Content>
-    <None Include="web.Debug.config">
-      <DependentUpon>web.config</DependentUpon>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
     </None>
-    <None Include="web.Release.config">
-      <DependentUpon>web.config</DependentUpon>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
   <PropertyGroup>

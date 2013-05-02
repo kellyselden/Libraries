@@ -35,6 +35,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="SmartSqlBulkCopy2.cs" />
     <Compile Include="SqlBatchProcess.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="SmartSqlBulkCopy.cs" />

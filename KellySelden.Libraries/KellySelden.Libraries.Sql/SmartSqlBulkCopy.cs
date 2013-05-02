@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Reflection;
 
 namespace KellySelden.Libraries.Sql
@@ -8,18 +10,16 @@ namespace KellySelden.Libraries.Sql
 	public class SmartSqlBulkCopy
 	{
 		readonly SqlConnectionWrapper _connectionWrapper;
-		readonly DataTable _tableDefinition;
+		readonly string _tableName;
+		readonly IDictionary<string, Type> _columns = new Dictionary<string, Type>();
 		readonly List<IDictionary<string, object>> _rows = new List<IDictionary<string, object>>();
 
-		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
 		public SmartSqlBulkCopy(string connectionString, string tableName) : this(new SqlConnectionWrapper(connectionString), tableName) { }
-		/// <param name="tableName">don't ever accept user input as the table name (SQL injection)</param>
 		public SmartSqlBulkCopy(SqlConnection connection, string tableName) : this(new SqlConnectionWrapper(connection), tableName) { }
 		SmartSqlBulkCopy(SqlConnectionWrapper connectionWrapper, string tableName)
 		{
 			_connectionWrapper = connectionWrapper;
-			_tableDefinition = SqlWrapper.ExecuteDataset(_connectionWrapper.Connection, "SELECT TOP 0 * FROM " + tableName).Tables[0];
-			_tableDefinition.TableName = tableName;
+			_tableName = tableName;
 		}
 
 		public void AddRow(object row)
@@ -27,23 +27,25 @@ namespace KellySelden.Libraries.Sql
 			int i = _rows.Count;
 			AddEmptyRows(i);
 			foreach (PropertyInfo propertyInfo in row.GetType().GetProperties())
-				AddColumnPrivate(i, propertyInfo.Name, propertyInfo.GetValue(row, null));
+				AddRowValuePrivate(i, propertyInfo.Name, propertyInfo.GetValue(row, null));
 		}
 		public void AddRow(IDictionary<string, object> row)
 		{
 			int i = _rows.Count;
 			AddEmptyRows(i);
 			foreach (KeyValuePair<string, object> column in row)
-				AddColumnPrivate(i, column.Key, column.Value);
+				AddRowValuePrivate(i, column.Key, column.Value);
 		}
 
-		public void AddColumn(int row, string column, object value)
+		public void AddRowValue(int row, string column, object value)
 		{
 			AddEmptyRows(row);
-			AddColumnPrivate(row, column, value);
+			AddRowValuePrivate(row, column, value);
 		}
-		void AddColumnPrivate(int row, string column, object value)
+		void AddRowValuePrivate(int row, string column, object value)
 		{
+			if (value != null && !_columns.ContainsKey(column))
+				_columns.Add(column, value.GetType());
 			_rows[row].Add(column, value);
 		}
 
@@ -55,34 +57,40 @@ namespace KellySelden.Libraries.Sql
 
 		public void Insert(int? timeout = null, int batchSize = 20000)
 		{
+			IDictionary<string, object> firstRow = _rows.FirstOrDefault();
+			if (firstRow == null) return;
+			
+			var table = new DataTable();
+			foreach (KeyValuePair<string, Type> kvp in _columns)
+				table.Columns.Add(kvp.Key, kvp.Value);
+
 			foreach (IDictionary<string, object> row in _rows)
 			{
-				var values = new object[_tableDefinition.Columns.Count];
+				DataRow r = table.NewRow();
 				foreach (KeyValuePair<string, object> column in row)
-				{
-					values[_tableDefinition.Columns.IndexOf(column.Key)] = column.Value;
-				}
-				_tableDefinition.Rows.Add(values);
+					if (column.Value != null && _columns.ContainsKey(column.Key))
+						r[column.Key] = column.Value;
+				table.Rows.Add(r);
 			}
 
 			using (_connectionWrapper)
 			using (var bulkCopy = new SqlBulkCopy(_connectionWrapper.Connection)
 			{
 				BatchSize = batchSize,
-				DestinationTableName = _tableDefinition.TableName
+				DestinationTableName = _tableName
 			})
 			{
 				if (timeout.HasValue)
-				{
 					bulkCopy.BulkCopyTimeout = timeout.Value;
-				}
+				foreach (string column in _columns.Keys)
+					bulkCopy.ColumnMappings.Add(column, column);
 				_connectionWrapper.Connection.Open();
-				bulkCopy.WriteToServer(_tableDefinition);
+				bulkCopy.WriteToServer(table);
 				_connectionWrapper.Connection.Close();
 			}
 
+			_columns.Clear();
 			_rows.Clear();
-			_tableDefinition.Rows.Clear();
 		}
 	}
 }

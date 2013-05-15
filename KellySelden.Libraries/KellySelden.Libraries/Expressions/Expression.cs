@@ -20,35 +20,49 @@ namespace KellySelden.Libraries.Expressions
 			_ignoreWhitespace = ignoreWhitespace;
 		}
 
-		public T EvaluateExpression<T>(string expression, string[][] operators, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		public T EvaluateExpression<T>(string expression, string[][] operators, IDictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
 			return EvaluateTree(ParseExpression(expression, operators), valueLookup, operation);
+		}
+		
+		public IEnumerable<string> GetVariables(string expression, string[][] operators)
+		{
+			return GetVariables(ParseExpression(expression, operators));
+		}
+		IEnumerable<string> GetVariables(IExpressionNode node)
+		{
+			var branch = node as ExpressionBranch;
+			if (branch == null)
+				return new[] { node.Expression };
+
+			return
+				GetVariables(branch.Left).Union(
+				GetVariables(branch.Right));
 		}
 
 		public IExpressionNode ParseExpression(string expression, string[][] operators)
 		{
-			expression = _ignoreWhitespace ? expression.Replace(" ", "") : Regex.Replace(expression, "\\s+", " ").Replace("( ", "(").Replace(" )", ")").Trim();
+			expression = _ignoreWhitespace ? expression.Replace(" ", "") : Regex.Replace(expression.Trim(), "\\s+", " ").Replace("( ", "(").Replace(" )", ")");
 
-			return ParseExpressionRecursive(expression, operators.Reverse().ToArray(),
+			return ParseExpression(expression, operators.Reverse().ToArray(),
 				operators.Aggregate((cur, next) => cur.Union(next).ToArray()));
 		}
-		IExpressionNode ParseExpressionRecursive(string expression, string[][] operators, string[] operatorsFlattened)
+		IExpressionNode ParseExpression(string expression, string[][] operators, string[] operatorsFlattened)
 		{
 			if (operatorsFlattened.All(op => !expression.Contains(op, _comparisonType)))
 			{
-				return new ExpressionLeaf { Expression = expression };
+				//if only one variable, parentheses haven't yet been removed, so remove them here
+				return new ExpressionLeaf { Expression = expression.Trim('(', ')') };
 			}
 
 			Dictionary<int, string> topLevelParentheses;
 			string @operator;
 			expression = AddImplicitParentheses(expression, operators, out topLevelParentheses, out @operator);
 
-			var left = topLevelParentheses.First();
-			var right = topLevelParentheses.Last();
 			return new ExpressionBranch
 			{
-				Left = ParseExpressionRecursive(left.Value, operators, operatorsFlattened),
-				Right = ParseExpressionRecursive(right.Value, operators, operatorsFlattened),
+				Left = ParseExpression(topLevelParentheses.First().Value, operators, operatorsFlattened),
+				Right = ParseExpression(topLevelParentheses.Last().Value, operators, operatorsFlattened),
 				Operator = @operator,
 				Expression = expression
 			};
@@ -58,8 +72,8 @@ namespace KellySelden.Libraries.Expressions
 		{
 			while (true)
 			{
-				var leftIndexes = DictionaryExtensions.ToDictionaryValue(expression.IndexOfAll('('), i => '(');
-				var rightIndexes = DictionaryExtensions.ToDictionaryValue(expression.IndexOfAll(')'), i => ')');
+				IDictionary<int, char> leftIndexes = expression.IndexOfAll('(').ToDictionaryValue(i => '('),
+				                       rightIndexes = expression.IndexOfAll(')').ToDictionaryValue(i => ')');
 				if (leftIndexes.Count != rightIndexes.Count)
 				{
 					throw new InvalidOperationException(ExceptionMessage);
@@ -148,7 +162,7 @@ namespace KellySelden.Libraries.Expressions
 			return expression;
 		}
 
-		public T EvaluateTree<T>(IExpressionNode node, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		public T EvaluateTree<T>(IExpressionNode node, IDictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
 			string[] operands = valueLookup.Select(v => v.Key).ToArray();
 			if (HasDuplicates(operands))
@@ -159,7 +173,7 @@ namespace KellySelden.Libraries.Expressions
 				throw new InvalidOperationException("valueLookup is missing values");
 			return EvaluateTreeRecursive(node, valueLookup, operation);
 		}
-		T EvaluateTreeRecursive<T>(IExpressionNode node, Dictionary<string, T> valueLookup, Func<T, T, string, T> operation)
+		T EvaluateTreeRecursive<T>(IExpressionNode node, IDictionary<string, T> valueLookup, Func<T, T, string, T> operation)
 		{
 			Func<IExpressionNode, T> getOrRecurse = n =>
 			{

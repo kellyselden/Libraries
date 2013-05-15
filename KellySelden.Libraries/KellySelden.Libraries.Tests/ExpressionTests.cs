@@ -62,6 +62,9 @@ namespace KellySelden.Libraries.Tests
 				}
 				throw new Exception();
 			});
+
+			var kjsdhf = new Expression(StringComparison.CurrentCultureIgnoreCase).GetVariables("(group0 OR (group1 OR (group2 AND group3)) AND group4 OR (group5)) AND (group0 OR (group1 OR (group2 AND group3)) AND group4 OR (group5))", SqlOperators);
+			var asdasd = new Expression(StringComparison.CurrentCultureIgnoreCase).GetVariables("(group1)", SqlOperators);
 		}
 
 		static readonly string[][] SqlOperators = new[]

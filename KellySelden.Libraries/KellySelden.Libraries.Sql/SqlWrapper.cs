@@ -69,7 +69,7 @@ namespace KellySelden.Libraries.Sql
 		public SqlDataReader ExecuteReader(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
 		{
 			SqlDataReader reader;
-			using (_connectionWrapper)
+			//using (_connectionWrapper)
 			using (var cmd = _connectionWrapper.Connection.CreateCommand())
 			{
 				cmd.CommandText = sql;

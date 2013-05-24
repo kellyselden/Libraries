@@ -15,7 +15,7 @@ namespace KellySelden.Libraries.Extensions
 		public static IDictionary<TKey, TElement> Union<TKey, TElement>(this IDictionary<TKey, TElement> first,
 			IDictionary<TKey, TElement> second)
 		{
-			return Enumerable.Union(first, second).GroupBy(x => x.Key).ToDictionary(g => g.Key, g => g.Single().Value);
+			return Enumerable.Union(first, second).ToDictionary(g => g.Key, g => g.Value);
 		}
 	}
 }

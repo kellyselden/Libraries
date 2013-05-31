@@ -26,10 +26,10 @@ namespace KellySelden.Libraries.Extensions
 		{
 			return str.SplitWithSeparator(separator, comparisonType, options).Select(kvp => kvp.Key);
 		}
-		public static IEnumerable<KeyValuePair<string, char>> SplitWithSeparator(this string str, IEnumerable<char> separator,
+		public static IEnumerable<KeyValuePair<string, char?>> SplitWithSeparator(this string str, IEnumerable<char> separator,
 			StringComparison comparisonType = StringComparison.CurrentCulture, StringSplitOptions options = StringSplitOptions.None)
 		{
-			return str.SplitWithSeparator(separator.Select(c => c.ToString()), comparisonType, options).Select(kvp => new KeyValuePair<string, char>(kvp.Key, kvp.Value[0]));
+			return str.SplitWithSeparator(separator.Select(c => c.ToString()), comparisonType, options).Select(kvp => new KeyValuePair<string, char?>(kvp.Key, kvp.Value == null ? (char?)null : kvp.Value[0]));
 		}
 		public static IEnumerable<KeyValuePair<string, string>> SplitWithSeparator(this string str, IEnumerable<string> separator,
 			StringComparison comparisonType = StringComparison.CurrentCulture, StringSplitOptions options = StringSplitOptions.None)

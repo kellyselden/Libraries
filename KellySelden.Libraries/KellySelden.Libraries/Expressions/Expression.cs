@@ -44,12 +44,11 @@ namespace KellySelden.Libraries.Expressions
 		{
 			expression = _ignoreWhitespace ? expression.Replace(" ", "") : Regex.Replace(expression.Trim(), "\\s+", " ").Replace("( ", "(").Replace(" )", ")");
 
-			return ParseExpression(expression, operators.Reverse().ToArray(),
-				operators.Aggregate((cur, next) => cur.Union(next).ToArray()));
+			return ParseExpression(expression, operators.Reverse().ToArray(), operators.SelectMany(o => o).Distinct().ToArray());
 		}
 		IExpressionNode ParseExpression(string expression, string[][] operators, string[] operatorsFlattened)
 		{
-			if (operatorsFlattened.All(op => !expression.Contains(op, _comparisonType)))
+			if (operatorsFlattened.All(op => !expression.Contains(_ignoreWhitespace ? op : ' ' + op + ' ', _comparisonType)))
 			{
 				//if only one variable, parentheses haven't yet been removed, so remove them here
 				return new ExpressionLeaf { Expression = expression.Trim('(', ')') };

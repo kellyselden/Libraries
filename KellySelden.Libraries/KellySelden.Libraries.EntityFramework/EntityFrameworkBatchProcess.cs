@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using KellySelden.Libraries.Sql;
 
 namespace KellySelden.Libraries.EntityFramework
 {
-	public class EntityFrameworkBatchProcess<T> where T : class
+	public class EntityFrameworkBatchProcess<T> : IDisposable where T : class
 	{
 		const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -22,7 +20,7 @@ namespace KellySelden.Libraries.EntityFramework
 		PropertyInfo _columnNameProperty, _databaseGeneratedOptionProperty;
 		readonly SqlBatchProcess _sqlBatchProcess;
 
-		public EntityFrameworkBatchProcess(DbContext context, EntityTypeConfiguration<T> map) //make map nullable
+		public EntityFrameworkBatchProcess(string connectionString, EntityTypeConfiguration<T> map) //make map nullable
 		{
 			_entityType = typeof(T);
 
@@ -39,7 +37,7 @@ namespace KellySelden.Libraries.EntityFramework
 			
 			object databaseName = configurationType.GetMethod("GetTableName", Flags).Invoke(configuration, null);
 			var tableName = databaseName == null ? _entityType.Name : (string)databaseName.GetType().GetProperty("Name").GetValue(databaseName, null);
-			_sqlBatchProcess = new SqlBatchProcess((SqlConnection)context.Database.Connection, tableName);
+			_sqlBatchProcess = new SqlBatchProcess(connectionString, tableName);
 		}
 		
 		public void AddEntitiesToInsert(IEnumerable<T> entities)
@@ -134,6 +132,11 @@ namespace KellySelden.Libraries.EntityFramework
 		public void Process(int? timeout = null, int batchSize = 20000)
 		{
 			_sqlBatchProcess.Process(timeout, batchSize);
+		}
+
+		public void Dispose()
+		{
+			_sqlBatchProcess.Dispose();
 		}
 	}
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace KellySelden.Libraries.Sql
 {
@@ -15,6 +17,15 @@ namespace KellySelden.Libraries.Sql
 		public SqlWrapper(SqlConnection connection)
 		{
 			_connectionWrapper = new SqlConnectionWrapper(connection);
+		}
+
+		public IEnumerable<DataRow> ExecuteDataRows(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteDataRows(sql, type, null, @params);
+		}
+		public IEnumerable<DataRow> ExecuteDataRows(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return (from DataRow row in ExecuteDataset(sql, type, commandTimeout, @params).Tables[0].Rows select row);
 		}
 
 		public DataSet ExecuteDataset(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
@@ -105,6 +116,23 @@ namespace KellySelden.Libraries.Sql
 				_connectionWrapper.Connection.Close();
 			}
 			return retVal == DBNull.Value ? default(T) : (T)retVal;
+		}
+
+		public static IEnumerable<DataRow> ExecuteDataRows(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteDataRows(connectionString, sql, type, null, @params);
+		}
+		public static IEnumerable<DataRow> ExecuteDataRows(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteDataRows(connection, sql, type, null, @params);
+		}
+		public static IEnumerable<DataRow> ExecuteDataRows(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connectionString).ExecuteDataRows(sql, type, commandTimeout, @params);
+		}
+		public static IEnumerable<DataRow> ExecuteDataRows(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connection).ExecuteDataRows(sql, type, commandTimeout, @params);
 		}
 
 		public static DataSet ExecuteDataset(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)

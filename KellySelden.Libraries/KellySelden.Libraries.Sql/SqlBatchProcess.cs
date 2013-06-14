@@ -7,10 +7,11 @@ using KellySelden.Libraries.Extensions;
 
 namespace KellySelden.Libraries.Sql
 {
-	public class SqlBatchProcess
+	public class SqlBatchProcess : IDisposable
 	{
 		readonly SqlConnectionWrapper _connectionWrapper;
 		readonly string _tableName;
+		readonly SqlDataAdapter _sqlDataAdapter;
 		readonly List<IDictionary<string, object>> _insertRows = new List<IDictionary<string, object>>();
 		readonly List<KeyValuePair<IDictionary<string, object>, IDictionary<string, object>>> _updateRows = new List<KeyValuePair<IDictionary<string, object>, IDictionary<string, object>>>();
 		readonly List<IDictionary<string, object>> _deleteRows = new List<IDictionary<string, object>>();
@@ -23,6 +24,7 @@ namespace KellySelden.Libraries.Sql
 		{
 			_connectionWrapper = connectionWrapper;
 			_tableName = tableName;
+			_sqlDataAdapter = new SqlDataAdapter();
 		}
 
 		public void AddRowToInsert(IDictionary<string, object> columns)
@@ -105,51 +107,59 @@ namespace KellySelden.Libraries.Sql
 				.Union(GetColumnsForUnion(updateRow.Value))
 				.Union(GetColumnsForUnion(deleteRow)))
 				.Select(c => new DataColumn(c)).ToArray());
-			using (_connectionWrapper)
-			using (var sqlDataAdapter = new SqlDataAdapter { UpdateBatchSize = batchSize })
+
+			if (insertRow != null)
 			{
-				if (insertRow != null)
+				AddRows(table, _insertRows);
+				if (_sqlDataAdapter.InsertCommand == null)
 				{
-					AddRows(table, _insertRows);
-					sqlDataAdapter.InsertCommand = PrepareCommand(
+					_sqlDataAdapter.InsertCommand = PrepareCommand(
 						string.Format("INSERT INTO {0} ({1}) VALUES ({2})", _tableName,
-						string.Join(", ", insertRow.Keys),
-						string.Join(", ", insertRow.Keys.Select(k => "@" + k))),
+							string.Join(", ", insertRow.Keys),
+							string.Join(", ", insertRow.Keys.Select(k => "@" + k))),
 						timeout, insertRow);
 				}
-				if (updateRow.Key != null)
+			}
+
+			if (updateRow.Key != null)
+			{
+				AddRows(table, _updateRows.Select(r => r.Key.Union(r.Value)), row =>
 				{
-					AddRows(table, _updateRows.Select(r => r.Key.Union(r.Value)), row =>
-					{
-						row.AcceptChanges();
-						row.SetModified();
-					});
-					sqlDataAdapter.UpdateCommand = PrepareCommand(
+					row.AcceptChanges();
+					row.SetModified();
+				});
+				if (_sqlDataAdapter.UpdateCommand == null)
+				{
+					_sqlDataAdapter.UpdateCommand = PrepareCommand(
 						string.Format("UPDATE {0} SET {1} WHERE {2}", _tableName,
-						string.Join(", ", updateRow.Value.Keys.Select(k => k + " = @" + k)),
-						string.Join(", ", updateRow.Key.Keys.Select(k => k + " = @" + k))),
+							string.Join(", ", updateRow.Value.Keys.Select(k => k + " = @" + k)),
+							string.Join(", ", updateRow.Key.Keys.Select(k => k + " = @" + k))),
 						timeout, updateRow.Key.Union(updateRow.Value));
 				}
-				if (deleteRow != null)
+			}
+
+			if (deleteRow != null)
+			{
+				AddRows(table, _deleteRows, row =>
 				{
-					AddRows(table, _deleteRows, row =>
-					{
-						row.AcceptChanges();
-						row.Delete();
-					});
-					sqlDataAdapter.DeleteCommand = PrepareCommand(
+					row.AcceptChanges();
+					row.Delete();
+				});
+				if (_sqlDataAdapter.DeleteCommand == null)
+				{
+					_sqlDataAdapter.DeleteCommand = PrepareCommand(
 						string.Format("DELETE FROM {0} WHERE {1}", _tableName,
-						string.Join(", ", deleteRow.Keys.Select(k => k + " = @" + k))),
+							string.Join(", ", deleteRow.Keys.Select(k => k + " = @" + k))),
 						timeout, deleteRow);
 				}
-				sqlDataAdapter.Update(table);
-				if (sqlDataAdapter.InsertCommand != null)
-					sqlDataAdapter.InsertCommand.Dispose();
-				if (sqlDataAdapter.UpdateCommand != null)
-					sqlDataAdapter.UpdateCommand.Dispose();
-				if (sqlDataAdapter.DeleteCommand != null)
-					sqlDataAdapter.DeleteCommand.Dispose();
 			}
+
+			_sqlDataAdapter.UpdateBatchSize = batchSize;
+			_sqlDataAdapter.Update(table);
+
+			_insertRows.Clear();
+			_updateRows.Clear();
+			_deleteRows.Clear();
 		}
 
 		IEnumerable<string> GetColumnsForUnion(IDictionary<string, object> columns)
@@ -177,6 +187,17 @@ namespace KellySelden.Libraries.Sql
 			foreach (var column in row)
 				command.Parameters.Add('@' + column.Key, Helpers.ConvertToSqlDbType(column.Value.GetType())).SourceColumn = column.Key;
 			return command;
+		}
+
+		public void Dispose()
+		{
+			if (_sqlDataAdapter.InsertCommand != null)
+				_sqlDataAdapter.InsertCommand.Dispose();
+			if (_sqlDataAdapter.UpdateCommand != null)
+				_sqlDataAdapter.UpdateCommand.Dispose();
+			if (_sqlDataAdapter.DeleteCommand != null)
+				_sqlDataAdapter.DeleteCommand.Dispose();
+			_connectionWrapper.Dispose();
 		}
 	}
 }

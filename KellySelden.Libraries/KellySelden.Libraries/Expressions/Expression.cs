@@ -29,7 +29,7 @@ namespace KellySelden.Libraries.Expressions
 		{
 			return GetVariables(ParseExpression(expression, operators));
 		}
-		IEnumerable<string> GetVariables(IExpressionNode node)
+		public IEnumerable<string> GetVariables(IExpressionNode node)
 		{
 			var branch = node as ExpressionBranch;
 			if (branch == null)

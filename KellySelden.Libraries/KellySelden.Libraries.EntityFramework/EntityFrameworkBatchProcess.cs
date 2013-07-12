@@ -13,16 +13,20 @@ namespace KellySelden.Libraries.EntityFramework
 		const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic;
 
 		readonly Type _entityType;
+		readonly IDictionary<string, PropertyInfo> _propertyLookup;
 		readonly IEnumerable<string> _keyProperties, _ignoredProperties;
-		readonly object _properties;
+		readonly object _mappedProperties;
 		readonly MethodInfo _processPropertiesMethod;
+		readonly SqlBatchProcess _sqlBatchProcess;
+
 		Type _primitivePropertyConfigurationType;
 		PropertyInfo _columnNameProperty, _databaseGeneratedOptionProperty;
-		readonly SqlBatchProcess _sqlBatchProcess;
+		T[] _inserts;
 
 		public EntityFrameworkBatchProcess(string connectionString, EntityTypeConfiguration<T> map) //make map nullable
 		{
 			_entityType = typeof(T);
+			_propertyLookup = _entityType.GetProperties().ToDictionary(p => p.Name);
 
 			object configuration = map.GetType().GetProperty("Configuration", Flags).GetValue(map, null);
 			Type configurationType = configuration.GetType();
@@ -30,46 +34,40 @@ namespace KellySelden.Libraries.EntityFramework
 			_keyProperties = ((IEnumerable<PropertyInfo>)configurationType.GetField("_keyProperties", Flags).GetValue(configuration)).Select(p => p.Name);
 			_ignoredProperties = ((IEnumerable<PropertyInfo>)configurationType.GetProperty("IgnoredProperties", Flags).GetValue(configuration, null)).Select(p => p.Name);
 
-			_properties = configurationType.GetProperty("PrimitivePropertyConfigurations", Flags).GetValue(configuration, null);
+			_mappedProperties = configurationType.GetProperty("PrimitivePropertyConfigurations", Flags).GetValue(configuration, null);
 			_processPropertiesMethod = typeof(EntityFrameworkBatchProcess<T>).GetMethod("ProcessProperties", Flags)
-				.MakeGenericMethod(_properties.GetType().GetInterfaces().Single(i =>
+				.MakeGenericMethod(_mappedProperties.GetType().GetInterfaces().Single(i =>
 					i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>)).GetGenericArguments());
 			
 			object databaseName = configurationType.GetMethod("GetTableName", Flags).Invoke(configuration, null);
 			var tableName = databaseName == null ? _entityType.Name : (string)databaseName.GetType().GetProperty("Name").GetValue(databaseName, null);
 			_sqlBatchProcess = new SqlBatchProcess(connectionString, tableName);
 		}
-		
+
 		public void AddEntitiesToInsert(IEnumerable<T> entities)
 		{
-			foreach (T entity in entities)
-				AddEntityToInsert(entity);
+			_inserts = entities.ToArray();
+			AddEntities(_inserts, DbOperation.Insert);
 		}
 		public void AddEntitiesToUpdate(IEnumerable<T> entities)
 		{
-			foreach (T entity in entities)
-				AddEntityToUpdate(entity);
+			AddEntities(entities, DbOperation.Update);
 		}
 		public void AddEntitiesToDelete(IEnumerable<T> entities)
 		{
+			AddEntities(entities, DbOperation.Delete);
+		}
+		void AddEntities(IEnumerable<T> entities, DbOperation operation)
+		{
 			foreach (T entity in entities)
-				AddEntityToDelete(entity);
-		}
-		public void AddEntityToInsert(T entity)
-		{
-			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Insert });
-		}
-		public void AddEntityToUpdate(T entity)
-		{
-			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Update });
-		}
-		public void AddEntityToDelete(T entity)
-		{
-			_processPropertiesMethod.Invoke(this, new[] { entity, _properties, DbOperation.Delete });
+				_processPropertiesMethod.Invoke(this, new[] { entity, _mappedProperties, operation });
 		}
 
 		enum DbOperation { Insert, Update, Delete }
 
+		KeyValuePair<string, Type>? _identity;
+		readonly IDictionary<string, string> _columnNameLookup = new Dictionary<string, string>();
+		readonly IDictionary<string, DatabaseGeneratedOption?> _databaseGeneratedOptionLookup = new Dictionary<string, DatabaseGeneratedOption?>();
 		void ProcessProperties<TKey, TValue>(T entity, IDictionary<TKey, TValue> mappedProperties, DbOperation operation)
 		{
 			var mappedPropertyNames = new List<string>();
@@ -86,9 +84,12 @@ namespace KellySelden.Libraries.EntityFramework
 				string propertyName = kvp.Key.ToString();
 				mappedPropertyNames.Add(propertyName);
 
-				var columnName = (string)_columnNameProperty.GetValue(kvp.Value, null) ?? propertyName; //property was mapped to key, but not as property
-				object columnValue = _entityType.GetProperty(propertyName).GetValue(entity, null);
-				
+				string columnName = (_columnNameLookup.ContainsKey(propertyName)
+					? _columnNameLookup[propertyName]
+					: _columnNameLookup[propertyName] = (string)_columnNameProperty.GetValue(kvp.Value, null))
+					?? propertyName; //property was mapped to key, but not as property
+				object columnValue = _propertyLookup[propertyName].GetValue(entity, null);
+
 				if (_keyProperties.Contains(propertyName))
 				{
 					if (operation != DbOperation.Insert)
@@ -100,15 +101,21 @@ namespace KellySelden.Libraries.EntityFramework
 					if (_databaseGeneratedOptionProperty == null)
 						_databaseGeneratedOptionProperty = _primitivePropertyConfigurationType.GetProperty("DatabaseGeneratedOption");
 
-					var databaseGeneratedOption = (DatabaseGeneratedOption?)_databaseGeneratedOptionProperty.GetValue(kvp.Value, null);
+					DatabaseGeneratedOption? databaseGeneratedOption = _databaseGeneratedOptionLookup.ContainsKey(propertyName)
+						? _databaseGeneratedOptionLookup[propertyName]
+						: _databaseGeneratedOptionLookup[propertyName] = (DatabaseGeneratedOption?)_databaseGeneratedOptionProperty.GetValue(kvp.Value, null);
 					if (!databaseGeneratedOption.HasValue || databaseGeneratedOption.Value == DatabaseGeneratedOption.Identity)
+					{
+						if (_identity == null)
+							_identity = new KeyValuePair<string, Type>(propertyName, columnValue.GetType());
 						continue;
+					}
 				}
 
 				if (operation != DbOperation.Delete)
 					columns.Add(columnName, columnValue);
 			}
-			foreach (PropertyInfo property in _entityType.GetProperties())
+			foreach (PropertyInfo property in _propertyLookup.Values)
 			{
 				if (!mappedPropertyNames.Contains(property.Name)
 					&& !_ignoredProperties.Contains(property.Name)
@@ -118,7 +125,7 @@ namespace KellySelden.Libraries.EntityFramework
 			switch (operation)
 			{
 				case DbOperation.Insert:
-					_sqlBatchProcess.AddRowToInsert(columns);
+					_sqlBatchProcess.AddRowToInsert(columns, _identity);
 					break;
 				case DbOperation.Update:
 					_sqlBatchProcess.AddRowToUpdate(keyColumns, columns);
@@ -129,9 +136,14 @@ namespace KellySelden.Libraries.EntityFramework
 			}
 		}
 
-		public void Process(int? timeout = null, int batchSize = 20000)
+		public void Process(int? timeout = null, int batchSize = SqlBatchProcess.DefaultBatchSize)
 		{
-			_sqlBatchProcess.Process(timeout, batchSize);
+			object[] identityKeys = _sqlBatchProcess.Process(timeout, batchSize).ToArray();
+			for (int i = 0; i < identityKeys.Length; i++)
+			{
+				_propertyLookup[_identity.Value.Key].SetValue(_inserts[i], identityKeys[i], null);
+			}
+			_inserts = null;
 		}
 
 		public void Dispose()

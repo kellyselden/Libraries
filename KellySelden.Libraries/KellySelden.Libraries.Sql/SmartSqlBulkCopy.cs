@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Reflection;
 
 namespace KellySelden.Libraries.Sql
@@ -57,8 +56,7 @@ namespace KellySelden.Libraries.Sql
 
 		public void Insert(int? timeout = null, int batchSize = 20000)
 		{
-			IDictionary<string, object> firstRow = _rows.FirstOrDefault();
-			if (firstRow == null) return;
+			if (_rows.Count == 0) return;
 			
 			var table = new DataTable();
 			foreach (KeyValuePair<string, Type> kvp in _columns)

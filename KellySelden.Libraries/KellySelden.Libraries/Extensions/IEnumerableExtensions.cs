@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace KellySelden.Libraries.Extensions
@@ -25,6 +26,11 @@ namespace KellySelden.Libraries.Extensions
 			}
 			if (array.Length == 0 || list.Count != 0)
 				yield return list;
+		}
+
+		public static TResult SelectFirst<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+		{
+			return selector(source.First());
 		}
 	}
 }

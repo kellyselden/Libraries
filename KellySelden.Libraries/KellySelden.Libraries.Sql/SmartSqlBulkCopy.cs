@@ -8,6 +8,8 @@ namespace KellySelden.Libraries.Sql
 {
 	public class SmartSqlBulkCopy
 	{
+		static readonly object HierarchyIdLock = new object();
+
 		readonly SqlConnectionWrapper _connectionWrapper;
 		readonly string _tableName;
 		readonly IDictionary<string, Type> _columns = new Dictionary<string, Type>();
@@ -57,10 +59,15 @@ namespace KellySelden.Libraries.Sql
 		public void Insert(int? timeout = null, int batchSize = 20000)
 		{
 			if (_rows.Count == 0) return;
-			
+
 			var table = new DataTable();
 			foreach (KeyValuePair<string, Type> kvp in _columns)
-				table.Columns.Add(kvp.Key, kvp.Value);
+			{
+				if (kvp.Value.Name != "SqlHierarchyId")
+					table.Columns.Add(kvp.Key, kvp.Value);
+				else lock (HierarchyIdLock)
+					table.Columns.Add(kvp.Key, kvp.Value);
+			}
 
 			foreach (IDictionary<string, object> row in _rows)
 			{

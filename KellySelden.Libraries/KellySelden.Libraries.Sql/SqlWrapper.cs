@@ -114,7 +114,8 @@ namespace KellySelden.Libraries.Sql
 				retVal = cmd.ExecuteScalar();
 				_connectionWrapper.Connection.Close();
 			}
-			return retVal == DBNull.Value ? default(T) : (T)retVal;
+			//return retVal == DBNull.Value ? default(T) : (T)retVal;
+			return retVal == DBNull.Value ? default(T) : (T)Convert.ChangeType(retVal, typeof(T));
 		}
 
 		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)

@@ -18,6 +18,15 @@ namespace KellySelden.Libraries.Sql
 			_connectionWrapper = new SqlConnectionWrapper(connection);
 		}
 
+		public T[] ExecuteArray<T>(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteArray<T>(sql, type, null, @params);
+		}
+		public T[] ExecuteArray<T>(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return ExecuteDataRows(sql, type, commandTimeout, @params).Select(r => (T)r[0]).ToArray();
+		}
+
 		public DataRow[] ExecuteDataRows(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
 		{
 			return ExecuteDataRows(sql, type, null, @params);
@@ -116,6 +125,23 @@ namespace KellySelden.Libraries.Sql
 			}
 			//return retVal == DBNull.Value ? default(T) : (T)retVal;
 			return retVal == DBNull.Value ? default(T) : (T)Convert.ChangeType(retVal, typeof(T));
+		}
+
+		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteArray<T>(connectionString, sql, type, null, @params);
+		}
+		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteArray<T>(connection, sql, type, null, @params);
+		}
+		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connectionString).ExecuteArray<T>(sql, type, commandTimeout, @params);
+		}
+		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connection).ExecuteArray<T>(sql, type, commandTimeout, @params);
 		}
 
 		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)

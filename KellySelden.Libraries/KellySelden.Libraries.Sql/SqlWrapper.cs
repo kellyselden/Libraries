@@ -123,8 +123,10 @@ namespace KellySelden.Libraries.Sql
 				retVal = cmd.ExecuteScalar();
 				_connectionWrapper.Connection.Close();
 			}
-			//return retVal == DBNull.Value ? default(T) : (T)retVal;
-			return retVal == DBNull.Value ? default(T) : (T)Convert.ChangeType(retVal, typeof(T));
+			return retVal == null //no result
+				|| retVal == DBNull.Value //null result
+				? default(T)
+				: (T)Convert.ChangeType(retVal, typeof(T)); //converts decimal to int for @@scope_identity
 		}
 
 		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)

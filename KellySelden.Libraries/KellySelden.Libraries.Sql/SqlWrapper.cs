@@ -18,29 +18,29 @@ namespace KellySelden.Libraries.Sql
 			_connectionWrapper = new SqlConnectionWrapper(connection);
 		}
 
-		public T[] ExecuteArray<T>(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public T[] ExecuteArray<T>(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteArray<T>(sql, type, null, @params);
+			return ExecuteArray<T>(sql, commandType, null, @params);
 		}
-		public T[] ExecuteArray<T>(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public T[] ExecuteArray<T>(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return ExecuteDataRows(sql, type, commandTimeout, @params).Select(r => (T)r[0]).ToArray();
-		}
-
-		public DataRow[] ExecuteDataRows(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
-		{
-			return ExecuteDataRows(sql, type, null, @params);
-		}
-		public DataRow[] ExecuteDataRows(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
-		{
-			return (from DataRow row in ExecuteDataset(sql, type, commandTimeout, @params).Tables[0].Rows select row).ToArray();
+			return ExecuteDataRows(sql, commandType, commandTimeout, @params).Select(r => (T)r[0]).ToArray();
 		}
 
-		public DataSet ExecuteDataset(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public DataRow[] ExecuteDataRows(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteDataset(sql, type, null, @params);
+			return ExecuteDataRows(sql, commandType, null, @params);
 		}
-		public DataSet ExecuteDataset(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public DataRow[] ExecuteDataRows(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return (from DataRow row in ExecuteDataset(sql, commandType, commandTimeout, @params).Tables[0].Rows select row).ToArray();
+		}
+
+		public DataSet ExecuteDataset(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteDataset(sql, commandType, null, @params);
+		}
+		public DataSet ExecuteDataset(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
 			var ds = new DataSet();
 			using (_connectionWrapper)
@@ -48,7 +48,7 @@ namespace KellySelden.Libraries.Sql
 			using (var da = new SqlDataAdapter(cmd))
 			{
 				cmd.CommandText = sql;
-				cmd.CommandType = type;
+				cmd.CommandType = commandType;
 				if (commandTimeout.HasValue)
 					cmd.CommandTimeout = commandTimeout.Value;
 				cmd.Parameters.AddRange(@params);
@@ -60,17 +60,17 @@ namespace KellySelden.Libraries.Sql
 			return ds;
 		}
 
-		public void ExecuteNonQuery(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public void ExecuteNonQuery(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			ExecuteNonQuery(sql, type, null, @params);
+			ExecuteNonQuery(sql, commandType, null, @params);
 		}
-		public void ExecuteNonQuery(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public void ExecuteNonQuery(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
 			using (_connectionWrapper)
 			using (var cmd = _connectionWrapper.Connection.CreateCommand())
 			{
 				cmd.CommandText = sql;
-				cmd.CommandType = type;
+				cmd.CommandType = commandType;
 				if (commandTimeout.HasValue)
 					cmd.CommandTimeout = commandTimeout.Value;
 				cmd.Parameters.AddRange(@params);
@@ -81,18 +81,18 @@ namespace KellySelden.Libraries.Sql
 			}
 		}
 
-		public SqlDataReader ExecuteReader(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public SqlDataReader ExecuteReader(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteReader(sql, type, null, @params);
+			return ExecuteReader(sql, commandType, null, @params);
 		}
-		public SqlDataReader ExecuteReader(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public SqlDataReader ExecuteReader(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
 			SqlDataReader reader;
 			//using (_connectionWrapper)
 			using (var cmd = _connectionWrapper.Connection.CreateCommand())
 			{
 				cmd.CommandText = sql;
-				cmd.CommandType = type;
+				cmd.CommandType = commandType;
 				if (commandTimeout.HasValue)
 					cmd.CommandTimeout = commandTimeout.Value;
 				cmd.Parameters.AddRange(@params);
@@ -103,18 +103,18 @@ namespace KellySelden.Libraries.Sql
 			return reader;
 		}
 
-		public T ExecuteScalar<T>(string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public T ExecuteScalar<T>(string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteScalar<T>(sql, type, null, @params);
+			return ExecuteScalar<T>(sql, commandType, null, @params);
 		}
-		public T ExecuteScalar<T>(string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public T ExecuteScalar<T>(string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
 			object retVal;
 			using (_connectionWrapper)
 			using (var cmd = _connectionWrapper.Connection.CreateCommand())
 			{
 				cmd.CommandText = sql;
-				cmd.CommandType = type;
+				cmd.CommandType = commandType;
 				if (commandTimeout.HasValue)
 					cmd.CommandTimeout = commandTimeout.Value;
 				cmd.Parameters.AddRange(@params);
@@ -123,112 +123,115 @@ namespace KellySelden.Libraries.Sql
 				retVal = cmd.ExecuteScalar();
 				_connectionWrapper.Connection.Close();
 			}
-			return retVal == null //no result
-				|| retVal == DBNull.Value //null result
-				? default(T)
-				: (T)Convert.ChangeType(retVal, typeof(T)); //converts decimal to int for @@scope_identity
+			if (retVal == null || //no result
+			    retVal == DBNull.Value) //null result
+				return default(T);
+			var type = typeof(T);
+			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+				type = Nullable.GetUnderlyingType(type); //converts T? to T for conversion
+			return (T)Convert.ChangeType(retVal, type); //converts decimal to int for @@scope_identity
 		}
 
-		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteArray<T>(connectionString, sql, type, null, @params);
+			return ExecuteArray<T>(connectionString, sql, commandType, null, @params);
 		}
-		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteArray<T>(connection, sql, type, null, @params);
+			return ExecuteArray<T>(connection, sql, commandType, null, @params);
 		}
-		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static T[] ExecuteArray<T>(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connectionString).ExecuteArray<T>(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connectionString).ExecuteArray<T>(sql, commandType, commandTimeout, @params);
 		}
-		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static T[] ExecuteArray<T>(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connection).ExecuteArray<T>(sql, type, commandTimeout, @params);
-		}
-
-		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
-		{
-			return ExecuteDataRows(connectionString, sql, type, null, @params);
-		}
-		public static DataRow[] ExecuteDataRows(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
-		{
-			return ExecuteDataRows(connection, sql, type, null, @params);
-		}
-		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
-		{
-			return new SqlWrapper(connectionString).ExecuteDataRows(sql, type, commandTimeout, @params);
-		}
-		public static DataRow[] ExecuteDataRows(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
-		{
-			return new SqlWrapper(connection).ExecuteDataRows(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connection).ExecuteArray<T>(sql, commandType, commandTimeout, @params);
 		}
 
-		public static DataSet ExecuteDataset(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteDataset(connectionString, sql, type, null, @params);
+			return ExecuteDataRows(connectionString, sql, commandType, null, @params);
 		}
-		public static DataSet ExecuteDataset(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static DataRow[] ExecuteDataRows(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteDataset(connection, sql, type, null, @params);
+			return ExecuteDataRows(connection, sql, commandType, null, @params);
 		}
-		public static DataSet ExecuteDataset(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static DataRow[] ExecuteDataRows(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connectionString).ExecuteDataset(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connectionString).ExecuteDataRows(sql, commandType, commandTimeout, @params);
 		}
-		public static DataSet ExecuteDataset(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static DataRow[] ExecuteDataRows(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connection).ExecuteDataset(sql, type, commandTimeout, @params);
-		}
-
-		public static void ExecuteNonQuery(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
-		{
-			ExecuteNonQuery(connectionString, sql, type, null, @params);
-		}
-		public static void ExecuteNonQuery(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
-		{
-			ExecuteNonQuery(connection, sql, type, null, @params);
-		}
-		public static void ExecuteNonQuery(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
-		{
-			new SqlWrapper(connectionString).ExecuteNonQuery(sql, type, commandTimeout, @params);
-		}
-		public static void ExecuteNonQuery(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
-		{
-			new SqlWrapper(connection).ExecuteNonQuery(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connection).ExecuteDataRows(sql, commandType, commandTimeout, @params);
 		}
 
-		public static SqlDataReader ExecuteReader(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static DataSet ExecuteDataset(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteReader(connectionString, sql, type, null, @params);
+			return ExecuteDataset(connectionString, sql, commandType, null, @params);
 		}
-		public static SqlDataReader ExecuteReader(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static DataSet ExecuteDataset(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteReader(connection, sql, type, null, @params);
+			return ExecuteDataset(connection, sql, commandType, null, @params);
 		}
-		public static SqlDataReader ExecuteReader(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static DataSet ExecuteDataset(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connectionString).ExecuteReader(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connectionString).ExecuteDataset(sql, commandType, commandTimeout, @params);
 		}
-		public static SqlDataReader ExecuteReader(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static DataSet ExecuteDataset(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connection).ExecuteReader(sql, type, commandTimeout, @params);
+			return new SqlWrapper(connection).ExecuteDataset(sql, commandType, commandTimeout, @params);
 		}
 
-		public static T ExecuteScalar<T>(string connectionString, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static void ExecuteNonQuery(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteScalar<T>(connectionString, sql, type, null, @params);
+			ExecuteNonQuery(connectionString, sql, commandType, null, @params);
 		}
-		public static T ExecuteScalar<T>(SqlConnection connection, string sql, CommandType type = CommandType.Text, params SqlParameter[] @params)
+		public static void ExecuteNonQuery(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
 		{
-			return ExecuteScalar<T>(connection, sql, type, null, @params);
+			ExecuteNonQuery(connection, sql, commandType, null, @params);
 		}
-		public static T ExecuteScalar<T>(string connectionString, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static void ExecuteNonQuery(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connectionString).ExecuteScalar<T>(sql, type, commandTimeout, @params);
+			new SqlWrapper(connectionString).ExecuteNonQuery(sql, commandType, commandTimeout, @params);
 		}
-		public static T ExecuteScalar<T>(SqlConnection connection, string sql, CommandType type, int? commandTimeout, params SqlParameter[] @params)
+		public static void ExecuteNonQuery(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
 		{
-			return new SqlWrapper(connection).ExecuteScalar<T>(sql, type, commandTimeout, @params);
+			new SqlWrapper(connection).ExecuteNonQuery(sql, commandType, commandTimeout, @params);
+		}
+
+		public static SqlDataReader ExecuteReader(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteReader(connectionString, sql, commandType, null, @params);
+		}
+		public static SqlDataReader ExecuteReader(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteReader(connection, sql, commandType, null, @params);
+		}
+		public static SqlDataReader ExecuteReader(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connectionString).ExecuteReader(sql, commandType, commandTimeout, @params);
+		}
+		public static SqlDataReader ExecuteReader(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connection).ExecuteReader(sql, commandType, commandTimeout, @params);
+		}
+
+		public static T ExecuteScalar<T>(string connectionString, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteScalar<T>(connectionString, sql, commandType, null, @params);
+		}
+		public static T ExecuteScalar<T>(SqlConnection connection, string sql, CommandType commandType = CommandType.Text, params SqlParameter[] @params)
+		{
+			return ExecuteScalar<T>(connection, sql, commandType, null, @params);
+		}
+		public static T ExecuteScalar<T>(string connectionString, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connectionString).ExecuteScalar<T>(sql, commandType, commandTimeout, @params);
+		}
+		public static T ExecuteScalar<T>(SqlConnection connection, string sql, CommandType commandType, int? commandTimeout, params SqlParameter[] @params)
+		{
+			return new SqlWrapper(connection).ExecuteScalar<T>(sql, commandType, commandTimeout, @params);
 		}
 	}
 }

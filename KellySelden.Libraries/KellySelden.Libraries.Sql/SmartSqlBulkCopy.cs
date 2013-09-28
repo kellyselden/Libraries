@@ -8,6 +8,8 @@ namespace KellySelden.Libraries.Sql
 {
 	public class SmartSqlBulkCopy
 	{
+		public const int DefaultBatchSize = 20000;
+
 		static readonly object HierarchyIdLock = new object();
 
 		readonly SqlConnectionWrapper _connectionWrapper;
@@ -56,7 +58,7 @@ namespace KellySelden.Libraries.Sql
 				_rows.Add(new Dictionary<string, object>());
 		}
 
-		public void Insert(int? timeout = null, int batchSize = 20000)
+		public void Insert(int? timeout = null, int batchSize = DefaultBatchSize)
 		{
 			if (_rows.Count == 0) return;
 

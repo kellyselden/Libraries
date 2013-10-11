@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using KellySelden.Libraries.Parallel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace KellySelden.Libraries.Tests

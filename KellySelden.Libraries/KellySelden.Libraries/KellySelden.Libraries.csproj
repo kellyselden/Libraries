@@ -43,7 +43,8 @@
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Memory\PerformanceInfo.cs" />
     <Compile Include="Memory\MemoryHelper.cs" />
-    <Compile Include="ParallelRecursion.cs" />
+    <Compile Include="Parallel\ParallelRecursion.cs" />
+    <Compile Include="Parallel\ParallelHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
   </ItemGroup>

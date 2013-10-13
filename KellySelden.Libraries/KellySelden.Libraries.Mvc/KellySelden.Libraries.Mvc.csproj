@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="Infrastructure\GenericDisposable.cs" />
     <Compile Include="Infrastructure\HtmlHelpers.cs" />
     <Compile Include="Infrastructure\RequestCache.cs" />
     <Compile Include="Models\PlayerModel.cs" />
@@ -130,6 +131,7 @@
     <EmbeddedResource Include="Scripts\Player.js" />
     <EmbeddedResource Include="Content\Popup.css" />
     <EmbeddedResource Include="Scripts\Popup.js" />
+    <Content Include="Content\CenteredContainer.css" />
     <Content Include="T4MVC.tt.settings.xml" />
     <Content Include="Views\Web.config" />
   </ItemGroup>

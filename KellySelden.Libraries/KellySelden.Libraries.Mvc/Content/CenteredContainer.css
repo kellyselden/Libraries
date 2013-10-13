@@ -1,0 +1,12 @@
+﻿.CenteredContainer-outer, .CenteredContainer-inner {
+	float: right;
+	position: relative;
+}
+
+.CenteredContainer-outer {
+	right: 50%;
+}
+
+.CenteredContainer-inner {
+	right: -50%;
+}

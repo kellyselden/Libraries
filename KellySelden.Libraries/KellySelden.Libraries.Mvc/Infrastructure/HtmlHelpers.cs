@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -114,6 +115,41 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 			anchor.InnerHtml = value;
 
 			return new HtmlString(anchor.ToString());
+		}
+
+		public static GenericDisposable CenteredContainer(this HtmlHelper html)
+		{
+			return CenteredContainer(html, null);
+		}
+		public static GenericDisposable CenteredContainer(this HtmlHelper html, object htmlAttributes)
+		{
+			return CenteredContainer(html, HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes));
+		}
+		public static GenericDisposable CenteredContainer(this HtmlHelper html, IDictionary<string, object> htmlAttributes)
+		{
+			//QueueEmbeddedStyle(html, KellySeldenLinks.Content.CenteredContainer_css);
+			QueueEmbeddedStyle(html, "/Content/CenteredContainer.css");
+
+			var writer = html.ViewContext.Writer;
+
+			var outer = new TagBuilder("div");
+			outer.Attributes.Add("class", "CenteredContainer-outer");
+			writer.Write(outer.ToString(TagRenderMode.StartTag));
+
+			var inner = new TagBuilder("div");
+			inner.MergeAttributes(htmlAttributes);
+			if (inner.Attributes.ContainsKey("class"))
+				inner.Attributes["class"] += " ";
+			else
+				inner.Attributes.Add("class", "");
+			inner.Attributes["class"] += "CenteredContainer-inner";
+			writer.Write(inner.ToString(TagRenderMode.StartTag));
+
+			return new GenericDisposable(() =>
+			{
+				writer.Write(outer.ToString(TagRenderMode.EndTag));
+				writer.Write(inner.ToString(TagRenderMode.EndTag));
+			});
 		}
 
 		public static void QueueScript(this HtmlHelper html, string path)

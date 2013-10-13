@@ -131,7 +131,7 @@
     <EmbeddedResource Include="Scripts\Player.js" />
     <EmbeddedResource Include="Content\Popup.css" />
     <EmbeddedResource Include="Scripts\Popup.js" />
-    <Content Include="Content\CenteredContainer.css" />
+    <EmbeddedResource Include="Content\CenteredContainer.css" />
     <Content Include="T4MVC.tt.settings.xml" />
     <Content Include="Views\Web.config" />
   </ItemGroup>

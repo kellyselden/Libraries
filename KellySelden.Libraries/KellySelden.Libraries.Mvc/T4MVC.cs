@@ -24,6 +24,7 @@ using KellySeldenT4MVC;
 [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
 public static class KellySeldenMVC
 {
+    public static KellySelden.Libraries.Mvc.Controllers.EmbeddedResourceController EmbeddedResource = new KellySelden.Libraries.Mvc.Controllers.T4MVC_EmbeddedResourceController();
     public static KellySeldenT4MVC.SharedController Shared = new KellySeldenT4MVC.SharedController();
 }
 
@@ -41,6 +42,21 @@ namespace KellySeldenT4MVC
     }
 }
 
+[GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+internal class T4MVC_System_Web_Mvc_ActionResult : System.Web.Mvc.ActionResult, IT4MVCActionResult
+{
+    public T4MVC_System_Web_Mvc_ActionResult(string area, string controller, string action, string protocol = null): base()
+    {
+        this.InitMVCT4Result(area, controller, action, protocol);
+    }
+     
+    public override void ExecuteResult(System.Web.Mvc.ControllerContext context) { }
+    
+    public string Controller { get; set; }
+    public string Action { get; set; }
+    public string Protocol { get; set; }
+    public RouteValueDictionary RouteValueDictionary { get; set; }
+}
 
 
 

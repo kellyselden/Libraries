@@ -127,8 +127,7 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 		}
 		public static GenericDisposable CenteredContainer(this HtmlHelper html, IDictionary<string, object> htmlAttributes)
 		{
-			//QueueEmbeddedStyle(html, KellySeldenLinks.Content.CenteredContainer_css);
-			QueueEmbeddedStyle(html, "/Content/CenteredContainer.css");
+			QueueEmbeddedStyle(html, KellySeldenLinks.Content.CenteredContainer_css);
 
 			var writer = html.ViewContext.Writer;
 
@@ -184,12 +183,12 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 
 		static IHtmlString RenderEmbeddedScript(HtmlHelper html, string path)
 		{
-			return RenderScript(GetWebResourceUrl(html, path));
+			return RenderScript(GetResourceUrl(html, path, "text/javascript"));
 		}
 
 		static IHtmlString RenderEmbeddedStyle(HtmlHelper html, string path)
 		{
-			return RenderStyle(GetWebResourceUrl(html, path));
+			return RenderStyle(GetResourceUrl(html, path, "text/css"));
 		}
 
 		static IHtmlString RenderScript(string url)
@@ -205,6 +204,17 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 		static IHtmlString Render(string format, string url)
 		{
 			return new HtmlString(string.Format(format, url));
+		}
+
+		static string GetResourceUrl(HtmlHelper html, string path, string contentType)
+		{
+			//T4MVC hack: it prepends the virtual directory even though I'm not using it.
+			var virtualDirectory = HttpRuntime.AppDomainAppVirtualPath;
+			if (virtualDirectory != null && path.StartsWith(virtualDirectory + '/'))
+				path = path.Remove(0, virtualDirectory.Length);
+
+			return new UrlHelper(html.ViewContext.RequestContext)
+				.Action(KellySeldenMVC.EmbeddedResource.Index(path, contentType));
 		}
 
 		static readonly Type Me = typeof(HtmlHelpers);

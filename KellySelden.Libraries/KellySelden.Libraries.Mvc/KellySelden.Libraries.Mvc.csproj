@@ -105,6 +105,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\EmbeddedResourceController.cs" />
+    <Compile Include="EmbeddedResourceController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Infrastructure\GenericDisposable.cs" />
     <Compile Include="Infrastructure\HtmlHelpers.cs" />
     <Compile Include="Infrastructure\RequestCache.cs" />
@@ -137,7 +142,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

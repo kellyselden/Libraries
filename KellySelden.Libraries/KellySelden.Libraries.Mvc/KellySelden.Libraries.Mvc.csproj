@@ -113,6 +113,7 @@
     <Compile Include="Infrastructure\GenericDisposable.cs" />
     <Compile Include="Infrastructure\HtmlHelpers.cs" />
     <Compile Include="Infrastructure\RequestCache.cs" />
+    <Compile Include="Infrastructure\UrlBuilder.cs" />
     <Compile Include="Models\PlayerModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SharedController.generated.cs">
@@ -168,6 +169,12 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KellySelden.Libraries\KellySelden.Libraries.csproj">
+      <Project>{e2736ec5-fbc5-4a82-97a4-265c4f65ceeb}</Project>
+      <Name>KellySelden.Libraries</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

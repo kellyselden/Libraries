@@ -40,6 +40,7 @@
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Helpers\EnumHelpers.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Memory\PerformanceInfo.cs" />
     <Compile Include="Memory\MemoryHelper.cs" />

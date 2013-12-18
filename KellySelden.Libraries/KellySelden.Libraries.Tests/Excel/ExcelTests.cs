@@ -38,7 +38,13 @@ namespace KellySelden.Libraries.Tests.Excel
 
 				for (int i = 0; i < rows.Length; i++)
 				{
+					var row = rows[i];
+
+					Assert.AreEqual(i, row.Index);
+
 					var cells = rows[i].Cells.ToArray();
+
+					Assert.AreEqual(worksheet.ColumnCount, cells.Length);
 
 					for (int j = 0; j < cells.Length; j++)
 					{
@@ -47,8 +53,6 @@ namespace KellySelden.Libraries.Tests.Excel
 						Assert.AreEqual(i, cell.RowIndex);
 						Assert.AreEqual(j, cell.ColumnIndex);
 					}
-
-					Assert.AreEqual(worksheet.ColumnCount, cells.Length);
 				}
 			}
 		}

@@ -38,8 +38,13 @@ namespace KellySelden.Libraries.Tests.Excel
 
 					for (int k = 0; k < rows1.Length; k++)
 					{
-						var cells1 = rows1[k].Cells.ToArray();
-						var cells2 = rows2[k].Cells.ToArray();
+						var row1 = rows1[k];
+						var row2 = rows2[k];
+
+						Assert.AreEqual(row1.Index, row2.Index);
+
+						var cells1 = row1.Cells.ToArray();
+						var cells2 = row2.Cells.ToArray();
 
 						Assert.AreEqual(cells1.Length, cells2.Length);
 

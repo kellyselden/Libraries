@@ -56,7 +56,7 @@ namespace KellySelden.Libraries.Excel.Services.NPOI
 				else cell = CreateCell(iCells[i - skipped]);
 				cells.Add(cell);
 			}
-			return new Row(cells);
+			return new Row(row.RowNum, cells);
 		}
 
 		Cell CreateCell(ICell cell)

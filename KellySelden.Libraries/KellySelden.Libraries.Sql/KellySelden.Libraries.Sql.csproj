@@ -35,6 +35,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Math\SqlDecimalAny.cs" />
+    <Compile Include="Math\SqlDecimalBase.cs" />
+    <Compile Include="Math\SqlDecimalExtensions.cs" />
     <Compile Include="SqlBatchProcess.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="SmartSqlBulkCopy.cs" />

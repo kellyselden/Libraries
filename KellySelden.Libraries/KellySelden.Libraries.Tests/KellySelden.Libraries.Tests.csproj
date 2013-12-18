@@ -16,6 +16,7 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -54,14 +57,22 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Excel\ExcelCompareTests.cs" />
+    <Compile Include="Excel\ExcelTests.cs" />
+    <Compile Include="Excel\NPOITests.cs" />
     <Compile Include="ExpressionTests.cs" />
     <Compile Include="ParallelRecursionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DictionaryTests.cs" />
     <Compile Include="StringExtensionsTests.cs" />
     <Compile Include="IEnumerableTests.cs" />
+    <Compile Include="EnumHelpersTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\KellySelden.Libraries.Excel\KellySelden.Libraries.Excel.csproj">
+      <Project>{14842d39-cb41-43f6-8a8e-80dd4f5b40a2}</Project>
+      <Name>KellySelden.Libraries.Excel</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KellySelden.Libraries.Sql\KellySelden.Libraries.Sql.csproj">
       <Project>{D73BE03C-40B8-47E8-9878-38D0C7C2E0B0}</Project>
       <Name>KellySelden.Libraries.Sql</Name>
@@ -70,6 +81,11 @@
       <Project>{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}</Project>
       <Name>KellySelden.Libraries</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Excel\ie_data.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

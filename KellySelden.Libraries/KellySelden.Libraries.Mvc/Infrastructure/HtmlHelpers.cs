@@ -107,12 +107,22 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 			return new HtmlString(button.ToString(TagRenderMode.SelfClosing));
 		}
 
-		public static IHtmlString SubmitLink(this HtmlHelper html, string value)
+		public static IHtmlString SubmitLink(this HtmlHelper html, string linkText)
 		{
 			var anchor = new TagBuilder("a");
 			anchor.Attributes["href"] = "javascript:void(0)";
 			anchor.Attributes["onclick"] = "$(this).closest('form')[0].submit()";
-			anchor.InnerHtml = value;
+			anchor.InnerHtml = linkText;
+
+			return new HtmlString(anchor.ToString());
+		}
+
+		public static IHtmlString Link(this HtmlHelper html, string linkText, string href, object htmlAttributes = null)
+		{
+			var anchor = new TagBuilder("a");
+			anchor.Attributes["href"] = href;
+			anchor.InnerHtml = linkText;
+			anchor.MergeAttributes(HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes));
 
 			return new HtmlString(anchor.ToString());
 		}

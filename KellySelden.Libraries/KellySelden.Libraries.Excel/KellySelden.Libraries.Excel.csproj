@@ -4,13 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}</ProjectGuid>
+    <ProjectGuid>{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KellySelden.Libraries</RootNamespace>
-    <AssemblyName>KellySelden.Libraries</AssemblyName>
+    <RootNamespace>KellySelden.Libraries.Excel</RootNamespace>
+    <AssemblyName>KellySelden.Libraries.Excel</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,26 +33,34 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NPOI.1.2.5\lib\net40\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI, Version=1.2.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NPOI.1.2.5\lib\net40\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="SpreadsheetGear">
+      <HintPath>..\SpreadsheetGear.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Expressions\ExpressionBranch.cs" />
-    <Compile Include="Expressions\ExpressionLeaf.cs" />
-    <Compile Include="Expressions\IExpressionNode.cs" />
-    <Compile Include="Extensions\DateTimeExtensions.cs" />
-    <Compile Include="Extensions\DictionaryExtensions.cs" />
-    <Compile Include="Expressions\Expression.cs" />
-    <Compile Include="Helpers\EnumHelpers.cs" />
-    <Compile Include="Extensions\IEnumerableExtensions.cs" />
-    <Compile Include="Memory\PerformanceInfo.cs" />
-    <Compile Include="Memory\MemoryHelper.cs" />
-    <Compile Include="Parallel\ParallelRecursion.cs" />
-    <Compile Include="Parallel\ParallelHelper.cs" />
+    <Compile Include="Domain\Entities\Cell.cs" />
+    <Compile Include="Domain\Services\IExcelService.cs" />
+    <Compile Include="Domain\Entities\Row.cs" />
+    <Compile Include="Domain\Entities\Workbook.cs" />
+    <Compile Include="Domain\Entities\Worksheet.cs" />
+    <Compile Include="Services\NPOI\ExcelService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

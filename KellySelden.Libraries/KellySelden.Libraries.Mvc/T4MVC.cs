@@ -43,7 +43,7 @@ namespace KellySeldenT4MVC
 }
 
 [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-internal class T4MVC_System_Web_Mvc_ActionResult : System.Web.Mvc.ActionResult, IT4MVCActionResult
+internal partial class T4MVC_System_Web_Mvc_ActionResult : System.Web.Mvc.ActionResult, IT4MVCActionResult
 {
     public T4MVC_System_Web_Mvc_ActionResult(string area, string controller, string action, string protocol = null): base()
     {
@@ -69,9 +69,7 @@ namespace KellySeldenLinks
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
         public static readonly string flowplayer_3_2_6_min_js = Url("flowplayer-3.2.6.min.js");
         public static readonly string Player_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Player.min.js") ? Url("Player.min.js") : Url("Player.js");
-                      
         public static readonly string Popup_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Popup.min.js") ? Url("Popup.min.js") : Url("Popup.js");
-                      
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]

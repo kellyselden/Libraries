@@ -45,7 +45,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="RazorGenerator.Mvc, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RazorGenerator.Mvc.2.0.0\lib\net40\RazorGenerator.Mvc.dll</HintPath>
+      <HintPath>..\packages\RazorGenerator.Mvc.2.2.1\lib\net40\RazorGenerator.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -96,11 +96,13 @@
       <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="T4MVCExtensions">
-      <HintPath>..\packages\T4MVCExtensions.3.6.0\lib\net40\T4MVCExtensions.dll</HintPath>
+    <Reference Include="T4MVCExtensions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\T4MVCExtensions.3.7.4\lib\net40\T4MVCExtensions.dll</HintPath>
     </Reference>
-    <Reference Include="WebActivatorEx">
-      <HintPath>..\packages\WebActivatorEx.2.0.1\lib\net40\WebActivatorEx.dll</HintPath>
+    <Reference Include="WebActivatorEx, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebActivatorEx.2.0.4\lib\net40\WebActivatorEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -138,7 +140,7 @@
     <EmbeddedResource Include="Content\Popup.css" />
     <EmbeddedResource Include="Scripts\Popup.js" />
     <EmbeddedResource Include="Content\CenteredContainer.css" />
-    <Content Include="T4MVC.tt.settings.xml" />
+    <None Include="T4MVC.tt.settings.xml" />
     <Content Include="Views\Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -158,11 +160,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Web.config" />
-    <Content Include="T4MVC.tt.hooks.t4" />
-    <Content Include="T4MVC.tt">
+    <None Include="T4MVC.tt.hooks.t4" />
+    <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

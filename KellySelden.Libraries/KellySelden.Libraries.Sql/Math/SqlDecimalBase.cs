@@ -87,7 +87,7 @@ namespace KellySelden.Libraries.Sql.Math
 			return (d1._d < d2._d).Value;
 		}
 
-		public static bool operator >=(SqlDecimalBase d1, SqlDecimalBase d2) { return d2 < d1; }
-		public static bool operator <=(SqlDecimalBase d1, SqlDecimalBase d2) { return d2 > d1; }
+		public static bool operator >=(SqlDecimalBase d1, SqlDecimalBase d2) { return d1 > d2 || d1 == d2; }
+		public static bool operator <=(SqlDecimalBase d1, SqlDecimalBase d2) { return d1 < d2 || d1 == d2; }
 	}
 }

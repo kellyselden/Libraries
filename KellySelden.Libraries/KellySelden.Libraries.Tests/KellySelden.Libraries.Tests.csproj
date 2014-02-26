@@ -67,6 +67,7 @@
     <Compile Include="StringExtensionsTests.cs" />
     <Compile Include="IEnumerableTests.cs" />
     <Compile Include="EnumHelpersTests.cs" />
+    <Compile Include="ParallelHelperTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KellySelden.Libraries.Excel\KellySelden.Libraries.Excel.csproj">

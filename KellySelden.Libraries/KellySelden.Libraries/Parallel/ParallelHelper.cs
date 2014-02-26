@@ -48,5 +48,28 @@ namespace KellySelden.Libraries.Parallel
 		}
 
 		public delegate void Synchronize();
+
+		public static Task StartNewTask(bool useTask, Action action)
+		{
+			if (useTask) return Task.Factory.StartNew(action);
+			action();
+			return _dummyTask ?? (_dummyTask = FromResult(false));
+		}
+
+		public static Task<T> StartNewTask<T>(bool useTask, Func<T> func)
+		{
+			if (useTask) return Task.Factory.StartNew(func);
+			return FromResult(func());
+		}
+
+		static Task _dummyTask;
+
+		//http://stackoverflow.com/questions/15562845/is-returning-an-empty-static-task-in-tpl-a-bad-practice/15571885#15571885
+		static Task<T> FromResult<T>(T result)
+		{
+			var tcs = new TaskCompletionSource<T>();
+			tcs.SetResult(result);
+			return tcs.Task;
+		}
 	}
 }

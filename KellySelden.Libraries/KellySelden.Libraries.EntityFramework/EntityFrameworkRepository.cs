@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using KellySelden.Libraries.Domain.Abstract;
@@ -22,6 +23,11 @@ namespace KellySelden.Libraries.EntityFramework
 		public virtual IQueryable<T> GetEntities<T>() where T : class
 		{
 			return Context.Set<T>();
+		}
+
+		public virtual IQueryable<T> GetEntities<T>(Func<T, bool> where) where T : class
+		{
+			return Context.Set<T>().Where(where).AsQueryable();
 		}
 
 		public virtual void SaveEntity<T>(T entity) where T : class, IEntity

@@ -1,0 +1,11 @@
+﻿.ui-widget-header
+{
+	background-image: url('<%= WebResource("KellySelden.Libraries.WebForms.Images.ui-bg_highlight-soft_75_cccccc_1x100.png") %>');
+}
+.ui-state-default .ui-icon {
+	background-image: url('<%= WebResource("KellySelden.Libraries.WebForms.Images.ui-icons_888888_256x240.png") %>');
+}
+.ui-state-hover .ui-icon,
+.ui-state-focus .ui-icon {
+	background-image: url('<%= WebResource("KellySelden.Libraries.WebForms.Images.ui-icons_454545_256x240.png") %>');
+}

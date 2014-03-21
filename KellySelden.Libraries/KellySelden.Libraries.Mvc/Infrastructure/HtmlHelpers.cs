@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
@@ -8,6 +7,7 @@ using System.Web.Handlers;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.WebPages;
+using KellySelden.Libraries.Web;
 
 namespace KellySelden.Libraries.Mvc.Infrastructure
 {
@@ -163,57 +163,42 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 
 		public static void QueueScript(this HtmlHelper html, string path)
 		{
-			RequestCache.Includes.Add(RenderScript(html, path).ToString());
+			ContentHelper.AddInclude(RenderScript(html, path));
 		}
 
 		public static void QueueStyle(this HtmlHelper html, string path)
 		{
-			RequestCache.Includes.Add(RenderStyle(html, path).ToString());
+			ContentHelper.AddInclude(RenderStyle(html, path));
 		}
 
 		public static void QueueEmbeddedScript(this HtmlHelper html, string path)
 		{
-			RequestCache.Includes.Add(RenderEmbeddedScript(html, path).ToString());
+			ContentHelper.AddInclude(RenderEmbeddedScript(html, path));
 		}
 
 		public static void QueueEmbeddedStyle(this HtmlHelper html, string path)
 		{
-			RequestCache.Includes.Add(RenderEmbeddedStyle(html, path).ToString());
+			ContentHelper.AddInclude(RenderEmbeddedStyle(html, path));
 		}
 
 		public static IHtmlString RenderScript(this HtmlHelper html, string path)
 		{
-			return RenderScript(AppendQuery(path));
+			return ContentHelper.RenderScript(ContentHelper.AppendTimestampQuery(path));
 		}
 
 		public static IHtmlString RenderStyle(this HtmlHelper html, string path)
 		{
-			return RenderStyle(AppendQuery(path));
+			return ContentHelper.RenderStyle(ContentHelper.AppendTimestampQuery(path));
 		}
 
 		static IHtmlString RenderEmbeddedScript(HtmlHelper html, string path)
 		{
-			return RenderScript(GetResourceUrl(html, path, "text/javascript"));
+			return ContentHelper.RenderScript(GetResourceUrl(html, path, "text/javascript"));
 		}
 
 		static IHtmlString RenderEmbeddedStyle(HtmlHelper html, string path)
 		{
-			return RenderStyle(GetResourceUrl(html, path, "text/css"));
-		}
-
-		static IHtmlString RenderScript(string url)
-		{
-			return Render("<script src=\"{0}\" type=\"text/javascript\"></script>", url);
-		}
-
-		static IHtmlString RenderStyle(string url)
-		{
-			return Render("<link href=\"{0}\" rel=\"stylesheet\" type=\"text/css\" />", url);
-		}
-
-		static IHtmlString Render(string format, string url)
-		{
-			return new HtmlString(string.Format(format, url));
+			return ContentHelper.RenderStyle(GetResourceUrl(html, path, "text/css"));
 		}
 
 		static string GetResourceUrl(HtmlHelper html, string path, string contentType)
@@ -239,19 +224,9 @@ namespace KellySelden.Libraries.Mvc.Infrastructure
 			return (string)GetWebResourceUrlMethod.Invoke(null, new object[] { Me, Namespace + path.Replace("/", ".") });
 		}
 
-		public static MvcHtmlString RenderIncludes(this HtmlHelper html)
+		public static IHtmlString RenderIncludes(this HtmlHelper html)
 		{
-			return MvcHtmlString.Create(string.Join("\n", RequestCache.Includes));
-		}
-
-		static string AppendQuery(string path)
-		{
-			string physicalPath = HttpContext.Current.Request.MapPath(path);
-			if (!File.Exists(physicalPath))
-				throw new FileNotFoundException("file not found", path);
-
-			var info = new FileInfo(physicalPath);
-			return string.Format("{0}?{1}{2}", path, info.LastWriteTimeUtc.Ticks % 1000, info.Length % 1000);
+			return ContentHelper.RenderIncludes();
 		}
 	}
 }

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Web;
 
-namespace KellySelden.Libraries.Mvc.Infrastructure
+namespace KellySelden.Libraries.Web
 {
-	static class RequestCache
+	public static class RequestCache
 	{
 		public static HashSet<string> Includes
 		{

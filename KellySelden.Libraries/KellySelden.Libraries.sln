@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Mvc",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Excel", "KellySelden.Libraries.Excel\KellySelden.Libraries.Excel.csproj", "{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.WebForms", "KellySelden.Libraries.WebForms\KellySelden.Libraries.WebForms.csproj", "{D8951830-3DBC-44C8-83CA-237CC795CA29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

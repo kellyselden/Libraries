@@ -114,7 +114,6 @@
     </Compile>
     <Compile Include="Infrastructure\GenericDisposable.cs" />
     <Compile Include="Infrastructure\HtmlHelpers.cs" />
-    <Compile Include="Infrastructure\RequestCache.cs" />
     <Compile Include="Infrastructure\UrlBuilder.cs" />
     <Compile Include="Models\PlayerModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -173,6 +172,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\KellySelden.Libraries.Web\KellySelden.Libraries.Web.csproj">
+      <Project>{0e05e54d-9f1f-468c-8adb-a88b7a3aa198}</Project>
+      <Name>KellySelden.Libraries.Web</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KellySelden.Libraries\KellySelden.Libraries.csproj">
       <Project>{e2736ec5-fbc5-4a82-97a4-265c4f65ceeb}</Project>
       <Name>KellySelden.Libraries</Name>

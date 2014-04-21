@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using KellySelden.Libraries.Excel.Domain.Entities;
@@ -11,6 +12,13 @@ namespace KellySelden.Libraries.Excel.Services.NPOI
 {
 	public class ExcelService : IExcelService
 	{
+		readonly IFormatProvider _format;
+
+		public ExcelService(IFormatProvider format)
+		{
+			_format = format ?? NumberFormatInfo.CurrentInfo;
+		}
+
 		public Workbook ReadWorkbook(string path)
 		{
 			if (!File.Exists(path)) return null;
@@ -68,7 +76,7 @@ namespace KellySelden.Libraries.Excel.Services.NPOI
 					value = cell.StringCellValue;
 					break;
 				case CellType.NUMERIC:
-					value = cell.NumericCellValue.ToString();
+					value = cell.NumericCellValue.ToString(_format);
 					break;
 				case CellType.FORMULA:
 					switch (cell.CachedFormulaResultType)
@@ -78,7 +86,7 @@ namespace KellySelden.Libraries.Excel.Services.NPOI
 							break;
 						case CellType.NUMERIC:
 							//excel trigger is probably out-of-date
-							value = (cell.CellFormula == "TODAY()" ? DateTime.Today.ToOADate() : cell.NumericCellValue).ToString();
+							value = (cell.CellFormula == "TODAY()" ? DateTime.Today.ToOADate() : cell.NumericCellValue).ToString(_format);
 							break;
 					}
 					break;

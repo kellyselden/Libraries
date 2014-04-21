@@ -57,9 +57,11 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Excel\ExcelCompareTests.cs" />
+    <Compile Include="Excel\ExcelCompare.cs" />
     <Compile Include="Excel\ExcelTests.cs" />
     <Compile Include="Excel\NPOITests.cs" />
+    <Compile Include="Excel\NPOICultureTests.cs" />
+    <Compile Include="Excel\Strings.cs" />
     <Compile Include="ExpressionTests.cs" />
     <Compile Include="ParallelRecursionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

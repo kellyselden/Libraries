@@ -7,12 +7,10 @@ namespace KellySelden.Libraries.Tests.Excel
 	[TestClass]
 	public class NPOITests : ExcelTests
 	{
-		const string FileName = "ie_data.xls",
-		             DeploymentItem = "Excel/" + FileName,
-		             WorksheetName = "Data";
+		const string WorksheetName = "Data";
 
 		public NPOITests()
-			: base(FileName, new ExcelService()) { }
+			: base(Strings.FileName, new ExcelService(null)) { }
 
 		[TestInitialize]
 		public override void TestInitialize()
@@ -21,14 +19,14 @@ namespace KellySelden.Libraries.Tests.Excel
 		}
 
 		[TestMethod]
-		[DeploymentItem(DeploymentItem)]
+		[DeploymentItem(Strings.DeploymentItem)]
 		public override void ExcelService_OpenWorkbook_FileNotFound_ReturnsNull()
 		{
 			base.ExcelService_OpenWorkbook_FileNotFound_ReturnsNull();
 		}
 
 		[TestMethod]
-		[DeploymentItem(DeploymentItem)]
+		[DeploymentItem(Strings.DeploymentItem)]
 		public void Workbook_Worksheets()
 		{
 			var worksheets = Workbook.Worksheets.ToArray();
@@ -40,14 +38,15 @@ namespace KellySelden.Libraries.Tests.Excel
 		}
 
 		[TestMethod]
-		[DeploymentItem(DeploymentItem)]
+		[DeploymentItem(Strings.DeploymentItem)]
 		public void Worksheet_Rows()
 		{
+			System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
 			Assert.AreEqual(2423, Workbook.Worksheets.Single(worksheet => worksheet.Name == WorksheetName).Rows.Count());
 		}
 
 		[TestMethod]
-		[DeploymentItem(DeploymentItem)]
+		[DeploymentItem(Strings.DeploymentItem)]
 		public override void ExcelService_CheckGrid()
 		{
 			base.ExcelService_CheckGrid();

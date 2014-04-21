@@ -6,6 +6,10 @@ using KellySelden.Libraries.Domain.Abstract;
 
 namespace KellySelden.Libraries.EntityFramework
 {
+	/// <summary>
+	/// why are these functions virtual?
+	/// why isn't this class abstract?
+	/// </summary>
 	public class EntityFrameworkRepository : IRepository
 	{
 		protected readonly DbContext Context;
@@ -15,9 +19,26 @@ namespace KellySelden.Libraries.EntityFramework
 			Context = context;
 		}
 
-		public virtual T GetEntity<T>(int id) where T : class, IEntity
+		public virtual T GetEntity<T>(int id) where T : class
 		{
-			return GetEntities<T>().Single(p => p.Id == id);
+			T entity = GetEntityOrDefault<T>(id);
+			if (entity == null) throw new InvalidOperationException("Sequence contains no elements");
+			return entity;
+		}
+
+		public virtual T GetEntity<T>(Func<T, bool> single) where T : class
+		{
+			return GetEntities<T>().Single(single);
+		}
+
+		public virtual T GetEntityOrDefault<T>(int id) where T : class
+		{
+			return Context.Set<T>().Find(id);
+		}
+
+		public virtual T GetEntityOrDefault<T>(Func<T, bool> single) where T : class
+		{
+			return GetEntities<T>().SingleOrDefault(single);
 		}
 
 		public virtual IQueryable<T> GetEntities<T>() where T : class
@@ -37,8 +58,19 @@ namespace KellySelden.Libraries.EntityFramework
 
 		public virtual void SaveEntities<T>(IEnumerable<T> entities) where T : class, IEntity
 		{
+			SaveEntities(entities, entity => entity.Id);
+		}
+
+		public virtual void SaveEntity<T>(T entity, Func<T, int> keySelector) where T : class
+		{
+			SaveEntities(new[] { entity }, keySelector);
+		}
+
+		public virtual void SaveEntities<T>(IEnumerable<T> entities, Func<T, int> keySelector) where T : class
+		{
 			foreach (T entity in entities)
-				Context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+				//Context.Entry(entity).State = keySelector(entity) == 0 ? EntityState.Added : EntityState.Modified;
+				Context.Entry(entity).CurrentValues.SetValues(entity);
 			Context.SaveChanges();
 		}
 

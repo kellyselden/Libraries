@@ -1,4 +1,4 @@
-﻿namespace KellySelden.Libraries.Tests.Excel
+﻿namespace KellySelden.Libraries.Excel.Tests
 {
 	static class Strings
 	{

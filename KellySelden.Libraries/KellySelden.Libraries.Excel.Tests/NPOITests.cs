@@ -1,21 +1,26 @@
 ﻿using System.Linq;
-using KellySelden.Libraries.Excel.Services.NPOI;
+using KellySelden.Libraries.Excel.NPOI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace KellySelden.Libraries.Tests.Excel
+namespace KellySelden.Libraries.Excel.Tests
 {
 	[TestClass]
 	public class NPOITests : ExcelTests
 	{
 		const string WorksheetName = "Data";
 
-		public NPOITests()
-			: base(Strings.FileName, new ExcelService(null)) { }
+		public NPOITests() : base(new ExcelService(), Strings.FileName) { }
 
 		[TestInitialize]
 		public override void TestInitialize()
 		{
 			base.TestInitialize();
+		}
+
+		[TestCleanup]
+		public override void TestCleanup()
+		{
+			base.TestCleanup();
 		}
 
 		[TestMethod]
@@ -41,7 +46,6 @@ namespace KellySelden.Libraries.Tests.Excel
 		[DeploymentItem(Strings.DeploymentItem)]
 		public void Worksheet_Rows()
 		{
-			System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
 			Assert.AreEqual(2423, Workbook.Worksheets.Single(worksheet => worksheet.Name == WorksheetName).Rows.Count());
 		}
 
@@ -50,6 +54,34 @@ namespace KellySelden.Libraries.Tests.Excel
 		public override void ExcelService_CheckGrid()
 		{
 			base.ExcelService_CheckGrid();
+		}
+
+		[TestMethod]
+		[DeploymentItem(Strings.DeploymentItem)]
+		public override void ExcelService_UsesCulture()
+		{
+			base.ExcelService_UsesCulture();
+		}
+
+		[TestMethod]
+		[DeploymentItem(Strings.DeploymentItem)]
+		public override void ExcelService_IgnoresThreadCulture()
+		{
+			base.ExcelService_IgnoresThreadCulture();
+		}
+
+		[TestMethod]
+		[DeploymentItem(Strings.DeploymentItem)]
+		public override void ExcelService_WriteWorkbook_Xls()
+		{
+			base.ExcelService_WriteWorkbook_Xls();
+		}
+
+		[TestMethod]
+		[DeploymentItem(Strings.DeploymentItem)]
+		public override void ExcelService_WriteWorkbook_Xlsx()
+		{
+			base.ExcelService_WriteWorkbook_Xlsx();
 		}
 	}
 }

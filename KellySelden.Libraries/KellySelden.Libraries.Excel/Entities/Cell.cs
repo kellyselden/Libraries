@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace KellySelden.Libraries.Excel.Domain.Entities
+namespace KellySelden.Libraries.Excel.Entities
 {
 	[DebuggerDisplay("{Value}")]
 	public class Cell

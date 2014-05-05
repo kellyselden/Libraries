@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KellySelden.Libraries.Excel.Domain.Entities
+namespace KellySelden.Libraries.Excel.Entities
 {
 	public class Row
 	{

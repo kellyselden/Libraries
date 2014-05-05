@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}</ProjectGuid>
+    <ProjectGuid>{73B4D12D-6911-438C-B90C-5732B70696CD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KellySelden.Libraries.Excel</RootNamespace>
-    <AssemblyName>KellySelden.Libraries.Excel</AssemblyName>
+    <RootNamespace>KellySelden.Libraries.Excel.NPOI</RootNamespace>
+    <AssemblyName>KellySelden.Libraries.Excel.NPOI</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,22 +32,45 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\NPOI.2.0.6\lib\net40\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI">
+      <HintPath>..\packages\NPOI.2.0.6\lib\net40\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML">
+      <HintPath>..\packages\NPOI.2.0.6\lib\net40\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net">
+      <HintPath>..\packages\NPOI.2.0.6\lib\net40\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats">
+      <HintPath>..\packages\NPOI.2.0.6\lib\net40\NPOI.OpenXmlFormats.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\Cell.cs" />
-    <Compile Include="Entities\ExcelVersion.cs" />
-    <Compile Include="Services\IExcelService.cs" />
-    <Compile Include="Entities\Row.cs" />
-    <Compile Include="Entities\Workbook.cs" />
-    <Compile Include="Entities\Worksheet.cs" />
+    <Compile Include="ExcelService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KellySelden.Libraries.Excel\KellySelden.Libraries.Excel.csproj">
+      <Project>{14842d39-cb41-43f6-8a8e-80dd4f5b40a2}</Project>
+      <Name>KellySelden.Libraries.Excel</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

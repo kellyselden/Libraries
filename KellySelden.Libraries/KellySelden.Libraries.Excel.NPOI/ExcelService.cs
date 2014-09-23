@@ -26,7 +26,12 @@ namespace KellySelden.Libraries.Excel.NPOI
 			if (!File.Exists(path)) return null;
 
 			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				return CreateWorkbook(WorkbookFactory.Create(stream));
+				return ReadWorkbook(stream);
+		}
+
+		public Workbook ReadWorkbook(Stream stream)
+		{
+			return CreateWorkbook(WorkbookFactory.Create(stream));
 		}
 
 		Workbook CreateWorkbook(IWorkbook workbook)
@@ -76,6 +81,9 @@ namespace KellySelden.Libraries.Excel.NPOI
 					break;
 				case CellType.Numeric:
 					value = cell.NumericCellValue.ToString(Format);
+					break;
+				case CellType.Boolean:
+					value = cell.BooleanCellValue.ToString();
 					break;
 				case CellType.Formula:
 					switch (cell.CachedFormulaResultType)

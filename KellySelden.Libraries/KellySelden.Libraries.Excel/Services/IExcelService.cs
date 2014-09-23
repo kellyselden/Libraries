@@ -8,6 +8,7 @@ namespace KellySelden.Libraries.Excel.Services
 	{
 		IFormatProvider Format { get; set; }
 		Workbook ReadWorkbook(string path);
+		Workbook ReadWorkbook(Stream stream);
 		void WriteWorkbook(Workbook workbook, ExcelVersion version, string path);
 		void WriteWorkbook(Workbook workbook, ExcelVersion version, Stream stream);
 	}

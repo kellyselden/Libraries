@@ -49,6 +49,7 @@ namespace KellySelden.Libraries.Excel.NPOI
 			for (int i = 0; i < sheet.PhysicalNumberOfRows; i++)
 			{
 				IRow row = sheet.GetRow(i);
+				if (row == null) continue;
 				maxColumns = Math.Max(maxColumns, row.LastCellNum);
 				rows.Add(row);
 			}

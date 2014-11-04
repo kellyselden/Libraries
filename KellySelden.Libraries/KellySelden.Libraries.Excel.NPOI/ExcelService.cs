@@ -46,7 +46,7 @@ namespace KellySelden.Libraries.Excel.NPOI
 		{
 			var rows = new List<IRow>();
 			int maxColumns = 0;
-			for (int i = 0; i < sheet.PhysicalNumberOfRows; i++)
+			for (int i = 0; i <= sheet.LastRowNum; i++)
 			{
 				IRow row = sheet.GetRow(i);
 				if (row == null) continue;

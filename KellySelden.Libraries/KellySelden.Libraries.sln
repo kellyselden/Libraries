@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries", "KellySelden.Libraries\KellySelden.Libraries.csproj", "{E2736EC5-FBC5-4A82-97A4-265C4F65CEEB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Tests", "KellySelden.Libraries.Tests\KellySelden.Libraries.Tests.csproj", "{699E468E-3877-4BDF-BD7F-2FD61937F92F}"
@@ -22,13 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Sql",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Mvc", "KellySelden.Libraries.Mvc\KellySelden.Libraries.Mvc.csproj", "{45A33C04-6B82-47BE-9E66-3AB1D60BD1C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Excel", "KellySelden.Libraries.Excel\KellySelden.Libraries.Excel.csproj", "{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.WebForms", "KellySelden.Libraries.WebForms\KellySelden.Libraries.WebForms.csproj", "{D8951830-3DBC-44C8-83CA-237CC795CA29}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Excel.NPOI", "KellySelden.Libraries.Excel.NPOI\KellySelden.Libraries.Excel.NPOI.csproj", "{73B4D12D-6911-438C-B90C-5732B70696CD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KellySelden.Libraries.Excel.Tests", "KellySelden.Libraries.Excel.Tests\KellySelden.Libraries.Excel.Tests.csproj", "{B161CB4A-E3FC-43B9-8956-9D72AEF0EF0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,22 +60,10 @@ Global
 		{45A33C04-6B82-47BE-9E66-3AB1D60BD1C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45A33C04-6B82-47BE-9E66-3AB1D60BD1C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45A33C04-6B82-47BE-9E66-3AB1D60BD1C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{14842D39-CB41-43F6-8A8E-80DD4F5B40A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8951830-3DBC-44C8-83CA-237CC795CA29}.Release|Any CPU.Build.0 = Release|Any CPU
-		{73B4D12D-6911-438C-B90C-5732B70696CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{73B4D12D-6911-438C-B90C-5732B70696CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{73B4D12D-6911-438C-B90C-5732B70696CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{73B4D12D-6911-438C-B90C-5732B70696CD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B161CB4A-E3FC-43B9-8956-9D72AEF0EF0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B161CB4A-E3FC-43B9-8956-9D72AEF0EF0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B161CB4A-E3FC-43B9-8956-9D72AEF0EF0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B161CB4A-E3FC-43B9-8956-9D72AEF0EF0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
